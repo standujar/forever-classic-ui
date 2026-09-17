@@ -8,14 +8,21 @@ from pathlib import Path, PurePosixPath
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 FOLDERS = frozenset({
-    "talentframe", "questframe", "questlogframe", "targetingframe",
-    "characterframe", "paperdollinfoframe", "containerframe", "bankframe",
-    "spellbook", "mainmenubar", "minimap", "buttons", "dialogframe",
-    "tooltips", "castingbar", "moneyframe", "itemtextframe", "gossipframe",
-    "lootframe", "merchantframe", "friendsframe", "chatframe", "auctionframe",
-    "classtrainerframe", "taxiframe", "icons",
+    "auctionframe", "bankframe", "battlefieldframe", "buttons", "castingbar",
+    "characterframe", "chatframe", "classtrainerframe", "comboframe",
+    "containerframe", "cooldown", "cursor", "dialogframe", "dressupframe",
+    "durability", "framegeneral", "friendsframe", "gossipframe", "groupframe",
+    "helpframe", "icons", "inventoryitems", "itemtextframe", "keybindingframe",
+    "lootframe", "macroframe", "mailframe", "mainmenubar", "merchantframe",
+    "minimap", "moneyframe", "optionsframe", "paperdoll", "paperdollinfoframe",
+    "petactionbar", "petitionframe", "petpaperdollframe", "petstableframe",
+    "playerframe", "pvpframe", "pvprankbadges", "questframe", "questlogframe",
+    "raidframe", "shapeshiftbar", "spellbook", "stationery", "tabardframe",
+    "talentframe", "targetingframe", "taxiframe", "timemanager", "tooltips",
+    "tradeframe", "tradeskillframe", "tutorialframe", "worldstateframe",
 })
-MAX_BYTES = 150 * 1024 * 1024
+# Bound the broader reference pack without including zone-map tile collections.
+MAX_BYTES = 200 * 1024 * 1024
 NOTICE = """# Blizzard artwork notice
 
 World of Warcraft interface artwork is copyright Blizzard Entertainment, Inc.
@@ -39,7 +46,13 @@ The files retain their extracted bytes and BLP format. File names were resolved
 using the community-maintained wowdev listfile; it is not an official Blizzard
 inventory.
 
-The selection includes frame artwork and icons. Only files directly inside
+The selection includes frame artwork and icons for the full in-game restoration
+scope, including social, mail, trade, crafting, pet and PvP windows. These
+folders can also contain shared expansion artwork; inclusion is not proof that
+a texture is used by the Vanilla UI. This remains a reference selection, not a
+verified complete set of Classic frames.
+
+Only files directly inside
 `interface/worldmap/` are included; zone-map tile directories are excluded.
 Login screens, character creation artwork, shop artwork, and unrelated interface
 categories are outside this pack's selection.
@@ -90,7 +103,7 @@ def main():
         raise ValueError("The source manifest contains duplicate selected paths.")
     total_bytes = sum(record["size"] for record in records)
     if total_bytes > MAX_BYTES:
-        raise ValueError(f"Selection exceeds the 150 MiB limit: {total_bytes} bytes.")
+        raise ValueError(f"Selection exceeds the {MAX_BYTES // (1024 * 1024)} MiB limit: {total_bytes} bytes.")
     raw_root = args.raw_source.resolve(strict=True)
     output_root = args.output.resolve()
     if output_root == raw_root or raw_root in output_root.parents:

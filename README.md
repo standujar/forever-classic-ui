@@ -1,8 +1,9 @@
 # Forever Classic UI
 
-An open-source addon project to bring the **Classic Era interface style to
-World of Warcraft: Forever**, including talent windows, quests, maps, character
-panels, spellbooks, bags, banks, unit frames and action bars.
+An open-source addon project to bring the **entire Classic Era in-game interface
+style to World of Warcraft: Forever**: talents, quests, maps, character panels,
+spellbooks, bags, banks, unit frames, action bars, professions, mail, auctions,
+social panels and the remaining in-game windows and controls.
 
 **Early development:** the current prototype provides client diagnostics and a
 texture preview. It does not yet replace native frames, and Forever compatibility
@@ -17,12 +18,14 @@ reference sheet, not a screenshot of a completed in-game interface.*
 
 - An original modular Lua addon with `/fcui status`, `/fcui inspect`,
   `/fcui preview` and `/fcui hide`.
-- **7,889 unchanged BLP textures (105.7 MiB)** in
+- **8,827 unchanged BLP textures (162.2 MiB)** in
   [assets/classic-era](assets/classic-era), with provenance and SHA-256 hashes.
 - Local, read-only CASC extraction tools for obtaining interface resources from
   an installed client.
 - Seven behavioral tests running under Lua 5.1 through Lupa.
 - A [Classic Frames compatibility audit](docs/classicframes-audit.md).
+- A [complete in-game restoration checklist](docs/ui-coverage.md), distinguishing
+  extracted artwork, diagnostic coverage and functional replacement work.
 
 The original code is **MIT licensed**. Blizzard artwork is separately attributed
 and is not relicensed under MIT. See [NOTICE.md](NOTICE.md).
@@ -50,8 +53,13 @@ report is stored in `ForeverClassicUIDB.lastReport`; the game saves it on reload
 or logout. It contains no character, account or combat data. Load-on-demand
 windows may appear absent until opened.
 
-In-game rendering, actual SavedVariables persistence and taint behavior still
-require client testing. The automated tests use a simulated WoW environment.
+The 21 named-frame probes are only a diagnostic sample. A result such as 19/21
+does not measure how many Classic frames exist or how much of the UI is restored.
+
+The [first in-game smoke test](docs/validation-era.md) confirmed that the addon
+loads, its native texture samples render and the diagnostic report persists on
+Era 1.15.9. Combat behavior, broader compatibility and functional replacements
+still require client testing. The automated tests use a simulated WoW environment.
 
 ## Development
 
@@ -110,9 +118,12 @@ not a port.
 
 ## Roadmap
 
+- Track every in-game UI family in the [restoration checklist](docs/ui-coverage.md).
 - Identify the actual Forever build and available UI APIs.
 - Restore window artwork and layout in isolated, reversible modules.
 - Cover talents, quests, character panels, spellbooks, bags, bank and maps.
+- Cover mail, trade, professions, auctions, social panels, pets, PvP, settings
+  and shared controls as part of the same full-interface scope.
 - Restore unit frames, minimap and action bars while preserving secure gameplay.
 - Validate each module in combat, at different UI scales and with other addons.
 

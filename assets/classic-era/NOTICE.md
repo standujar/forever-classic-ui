@@ -21,7 +21,13 @@ The files retain their extracted bytes and BLP format. File names were resolved
 using the community-maintained wowdev listfile; it is not an official Blizzard
 inventory.
 
-The selection includes frame artwork and icons. Only files directly inside
+The selection includes frame artwork and icons for the full in-game restoration
+scope, including social, mail, trade, crafting, pet and PvP windows. These
+folders can also contain shared expansion artwork; inclusion is not proof that
+a texture is used by the Vanilla UI. This remains a reference selection, not a
+verified complete set of Classic frames.
+
+Only files directly inside
 `interface/worldmap/` are included; zone-map tile directories are excluded.
 Login screens, character creation artwork, shop artwork, and unrelated interface
 categories are outside this pack's selection.
