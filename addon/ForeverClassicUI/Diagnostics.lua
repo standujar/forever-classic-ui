@@ -8,6 +8,9 @@ Diagnostics.frameNames = {
     "Minimap", "MinimapCluster", "QuestFrame", "QuestLogFrame", "CharacterFrame",
     "SpellBookFrame", "TalentFrame", "PlayerTalentFrame", "WorldMapFrame",
     "ContainerFrame1", "BankFrame", "EditModeManagerFrame",
+    -- The beta uses a combined spells/talents window and a map quest panel.
+    -- Keep legacy probes for comparison; their absence is not an error.
+    "PlayerSpellsFrame", "QuestMapFrame", "SettingsPanel", "FocusFrame",
 }
 
 local function inspectFrame(name)
@@ -36,6 +39,7 @@ end
 
 function Diagnostics:Collect()
     local version, build, buildDate, interfaceVersion = GetBuildInfo()
+    local settings = type(Settings) == "table" and Settings or {}
     local report = {
         schemaVersion = 1,
         addonVersion = Addon.version,
@@ -53,6 +57,9 @@ function Diagnostics:Collect()
             issecretvalue = type(issecretvalue) == "function",
             C_Secrets = type(C_Secrets) == "table",
             InCombatLockdown = type(InCombatLockdown) == "function",
+            Settings_RegisterCanvasLayoutCategory = type(settings.RegisterCanvasLayoutCategory) == "function",
+            Settings_RegisterAddOnCategory = type(settings.RegisterAddOnCategory) == "function",
+            Settings_OpenToCategory = type(settings.OpenToCategory) == "function",
         },
         frames = {},
         mediaSource = Addon:GetModule("Media").source,
@@ -84,9 +91,13 @@ function Diagnostics:Run(verbose)
             Addon:Print(name .. ": " .. status)
         end
     end
-    Addon:Print(string.format("UI: %d/%d frames present, %d protected. issecretvalue=%s; C_Secrets=%s.",
+    Addon:Print(string.format("UI sample: %d/%d frames present, %d protected. issecretvalue=%s; C_Secrets=%s.",
         present, #self.frameNames, protected,
         tostring(report.api.issecretvalue), tostring(report.api.C_Secrets)))
+    Addon:Print(string.format("Settings API: canvas=%s; addon category=%s; open=%s.",
+        tostring(report.api.Settings_RegisterCanvasLayoutCategory),
+        tostring(report.api.Settings_RegisterAddOnCategory),
+        tostring(report.api.Settings_OpenToCategory)))
     Addon:Print("Report held in memory. Use /reload or log out to save it in ForeverClassicUIDB.")
     Addon:Print("An absent frame may load on demand. Forever compatibility is unverified.")
     return report

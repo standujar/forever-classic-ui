@@ -3,8 +3,10 @@
 The goal is a tested, modular Classic-style in-game interface for the actual
 Forever client, with native Forever nameplates retained. Inspect that client's
 build, frame hierarchies and available APIs before final adaptation. The current
-development addon targets Classic Era 1.15.9 for asset inspection; it does not yet
-replace native frames.
+development addon provides diagnostics for Classic Era 1.15.9 and a separate
+Forever beta 1.60.1.69893 package; it does not yet replace native frames. Beta
+source inspection is recorded in [the validation log](docs/validation-forever.md),
+but in-game beta behavior remains unvalidated.
 
 Unit frames, windows, world and flight maps, action bars, minimap and the remaining
 HUD are in scope. Nameplates are the only excluded in-game UI family. Follow the
@@ -21,6 +23,12 @@ tools/python-env/bin/python -m pip install -r tools/requirements.txt
 tools/python-env/bin/python tests/run.py
 python3 tools/package_addon.py
 ```
+
+The default package target is `era`. Use
+`python3 tools/package_addon.py --target forever-beta` for the beta archive.
+Its candidate Interface `16001` is inferred from the client version and must be
+confirmed in game. Follow the [beta installation and test steps](README.md#forever-beta)
+and preserve historical Era test results as evidence for their original version.
 
 Keep user-facing strings, code comments and documentation in English. Add each
 feature as a module and state which client/build was tested. Preserve native

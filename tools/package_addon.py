@@ -13,11 +13,41 @@ ADDON = ROOT / 'addon' / 'ForeverClassicUI'
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--target', choices=('era', 'forever-beta'), default='era',
+                        help='Target client; the Forever beta interface number is provisional.')
     parser.add_argument('--with-preview-media', action='store_true',
                         help='Include only Media.lua sample textures from the local Era extraction.')
     args = parser.parse_args()
     toc = ADDON / 'ForeverClassicUI.toc'
-    entries = [line.strip() for line in toc.read_text().splitlines()
+    toc_text = toc.read_text()
+    metadata = dict(line[2:].strip().split(':', 1)
+                    for line in toc_text.splitlines()
+                    if line.startswith('##') and ':' in line)
+    version = metadata.get('Version', '').strip()
+    if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._+-]*', version):
+        raise SystemExit('Missing or invalid addon Version in the source TOC.')
+    source_interface = metadata.get('Interface', '').strip()
+    if not source_interface.isdigit():
+        raise SystemExit('Missing or invalid Interface in the source TOC.')
+    target_interface = int(source_interface)
+    interface_basis = 'source-addon-toc'
+    target_client_version = None
+    packaged_toc = None
+    if args.target == 'forever-beta':
+        target_interface = 16001
+        target_client_version = '1.60.1.69893'
+        interface_basis = 'candidate derived from installed client version; in-game GetBuildInfo not verified'
+        overrides = {
+            'Interface': str(target_interface),
+            'Title': 'Forever Classic UI - Beta Workshop',
+            'Notes': 'Forever beta diagnostics and visual references. Compatibility validation is pending.',
+        }
+        packaged_toc = '\n'.join(
+            f'## {key}: {overrides[key]}' if key in overrides else line
+            for line in toc_text.splitlines()
+            for key in [line[2:].strip().partition(':')[0] if line.startswith('##') else None]
+        ) + '\n'
+    entries = [line.strip() for line in toc_text.splitlines()
                if line.strip() and not line.strip().startswith('#')]
     files = [(toc, f'{ADDON.name}/{toc.name}')]
     if (ADDON / 'README.md').is_file():
@@ -41,12 +71,16 @@ def main():
             if source is None:
                 raise SystemExit(f'Preview texture was not extracted: {relative}')
             files.append((source, f'{ADDON.name}/Media/{relative}'))
-    suffix = '-local-preview' if args.with_preview_media else ''
-    dest = ROOT / 'dist' / f'ForeverClassicUI-0.1.0-dev{suffix}.zip'
+    target_suffix = '-forever-beta' if args.target == 'forever-beta' else ''
+    media_suffix = '-local-preview' if args.with_preview_media else ''
+    dest = ROOT / 'dist' / f'ForeverClassicUI-{version}{target_suffix}{media_suffix}.zip'
     dest.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(dest, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
         for source, name in files:
-            bundle.write(source, name)
+            if source == toc and packaged_toc is not None:
+                bundle.writestr(name, packaged_toc)
+            else:
+                bundle.write(source, name)
     with zipfile.ZipFile(dest) as bundle:
         if bundle.testzip() is not None:
             raise SystemExit('Archive verification failed.')
@@ -55,7 +89,10 @@ def main():
                 'size': dest.stat().st_size, 'files': members,
                 'includes_extracted_blizzard_art': args.with_preview_media,
                 'includes_classicframes_code': False, 'in_game_validated': False,
-                'target_interface': 11509}
+                'addon_version': version, 'addon_version_basis': 'source-addon-toc',
+                'target': args.target, 'target_client_version': target_client_version,
+                'target_interface': target_interface, 'target_interface_basis': interface_basis,
+                'compatibility_validation': 'pending'}
     dest.with_suffix('.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(json.dumps(manifest, indent=2))
 

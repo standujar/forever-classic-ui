@@ -2,7 +2,7 @@
 local addonName, Addon = ...
 
 Addon.name = addonName
-Addon.version = "0.1.0-dev"
+Addon.version = "0.1.1-dev"
 Addon.modules = {}
 Addon.moduleOrder = {}
 
@@ -56,7 +56,7 @@ function Addon:HandleCommand(input)
         self:GetModule("Preview"):Hide()
     else
         self:Print("/fcui status: report; /fcui inspect: details; /fcui preview: references; /fcui hide: close.")
-        self:Print("Classic Era 1.15.9 workshop. Forever compatibility is unverified.")
+        self:Print("Classic UI diagnostic workshop. Forever compatibility is unverified.")
     end
 end
 

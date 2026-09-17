@@ -137,6 +137,7 @@ test("status stores only build and UI capability report", function()
     equal(report.frames.WorldMapFrame.present, false)
     equal(report.api.issecretvalue, true)
     equal(report.api.C_Secrets, true)
+    equal(report.api.Settings_RegisterCanvasLayoutCategory, false)
     equal(state.sensitiveCalls, 0)
     equal(state.nativeMutations, 0)
     assert(#state.messages >= 4)
@@ -153,6 +154,39 @@ test("inspect handles optional APIs missing and remains read only in combat", fu
     equal(state.sensitiveCalls, 0)
     equal(state.nativeMutations, 0)
     assert(#state.messages >= #state.addon:GetModule("Diagnostics").frameNames)
+end)
+
+test("beta report detects modern windows and Settings without invoking gameplay APIs", function()
+    local state = harness()
+    state.env.GetBuildInfo = function() return "1.60.1", "69893", "Sep 17 2026", 16001 end
+    local function mustNotCall() error("Capability detection invoked an API") end
+    state.env.Settings = {
+        RegisterCanvasLayoutCategory = mustNotCall,
+        RegisterAddOnCategory = mustNotCall,
+        OpenToCategory = mustNotCall,
+    }
+    state.env.C_Traits = setmetatable({}, { __index = mustNotCall })
+    state.env.C_NamePlate = setmetatable({}, { __index = mustNotCall })
+    state.env.NamePlate1 = { IsForbidden = mustNotCall, IsProtected = mustNotCall }
+    state.env.PlayerSpellsFrame = { IsProtected = function() return false end }
+    state.env.QuestMapFrame = { IsProtected = function() return false end }
+    state.env.FocusFrame = { IsProtected = function() return true end }
+    state:command("inspect")
+    local report = state.env.ForeverClassicUIDB.lastReport
+    equal(report.client.interfaceVersion, 16001)
+    equal(report.client.build, "69893")
+    equal(report.frames.PlayerSpellsFrame.present, true)
+    equal(report.frames.PlayerSpellsFrame.protected, false)
+    equal(report.frames.QuestMapFrame.present, true)
+    equal(report.frames.FocusFrame.protected, true)
+    equal(report.frames.PlayerTalentFrame.present, false)
+    equal(report.frames.NamePlate1, nil)
+    equal(report.api.Settings_RegisterCanvasLayoutCategory, true)
+    equal(report.api.Settings_RegisterAddOnCategory, true)
+    equal(report.api.Settings_OpenToCategory, true)
+    equal(report.foreverCompatibility, "unvalidated")
+    equal(state.nativeMutations, 0)
+    equal(state.sensitiveCalls, 0)
 end)
 
 test("report survives simulated SavedVariables reload without new scan", function()

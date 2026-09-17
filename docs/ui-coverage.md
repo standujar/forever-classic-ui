@@ -4,8 +4,9 @@ The goal is to restore the Classic presentation of the in-game interface,
 including unit frames, windows, maps and HUD controls. Nameplates are the explicit
 exception: keep the target client's native nameplates and their behavior.
 This scope was clarified on September 17, 2026. The reference installation is
-Classic Era `1.15.9.69722`; the actual Forever client must be inspected before
-deciding its adaptations.
+Classic Era `1.15.9.69722`. The installed Forever beta `1.60.1.69893` has now been
+inspected at source level; its in-game behavior still needs validation before
+final adaptations are chosen.
 
 ## What we currently have
 
@@ -13,12 +14,20 @@ deciding its adaptations.
   and 292 TOC files available through the known file-name list.
 - The repository's expanded reference pack contains 8,827 unchanged textures
   (170,042,504 bytes). It adds 938 textures for previously omitted UI families.
-- The installed prototype samples 21 named globals and previews eight textures.
-  Its latest saved report detects 19 globals. This is a diagnostic sample, not a
-  count of all Classic frames or a completion percentage.
+- Prototype `0.1.1-dev` samples 25 named globals and previews eight textures.
+  Diagnostics include new probes for `PlayerSpellsFrame`, `QuestMapFrame`, `SettingsPanel`
+  and `FocusFrame`, plus native Settings API presence flags.
+- The saved Era report from version `0.1.0-dev` detects 19 of its 21 probed globals.
+  These are diagnostic samples, not a count of all Classic frames or a completion
+  percentage.
 - No functional replacement module has been completed. Talent-window detection,
   sample rendering and report persistence have been tested on Era; see
   [the validation log](validation-era.md).
+- The first Forever beta diagnostic package is prepared for the local
+  `_classic_beta_` client. Camelot sources identify `PlayerSpellsFrame` for talents
+  and spellbook, `QuestMapFrame`/`WorldMapFrame` for maps and native Settings
+  registration functions. [Beta runtime validation](validation-forever.md) is
+  still pending.
 - The integrated setup panel described below is planned and is not included in
   the current prototype.
 
@@ -108,7 +117,7 @@ room sources. Vanilla crafting and profession sources are present in
 `Blizzard_CraftUI` and `Blizzard_TradeSkillUI`. `Blizzard_FrameXML_Vanilla.toc`
 loads the Vanilla world-state UI. The unit-frame and action-bar manifests cover
 the Classic party, pet, combo and stance families. These are examples of real
-native subsystems beyond the prototype's 21 probes.
+native subsystems beyond the original prototype's 21 probes.
 
 ## Completion criteria and limits
 
@@ -125,5 +134,5 @@ Zone-map tiles remain in the local export; the repository currently includes onl
 the top-level map artwork. Other omitted dependencies can be added when identified.
 
 Login and character-selection screens are outside this in-game addon scope.
-Forever behavior remains unvalidated until its actual client can be inspected
-and tested. No completion percentage for the full restoration is claimed.
+Forever runtime behavior remains unvalidated despite source inspection of the
+installed beta client. No completion percentage for the full restoration is claimed.

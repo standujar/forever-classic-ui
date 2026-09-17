@@ -29,3 +29,4 @@ jobs:
         run: |
           python tools/package_addon.py
           python tools/package_addon.py --with-preview-media
+          python tools/package_addon.py --target forever-beta

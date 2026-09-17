@@ -1,8 +1,28 @@
-# Forever Classic UI — Era workshop
+# Forever Classic UI — Diagnostic workshop
 
-An original prototype targeting the locally installed **Classic Era 1.15.9 /
-TOC 11509** client. The code and tests are ready; execution and rendering in the
-game still need validation. Forever compatibility is unverified.
+An original diagnostic prototype, version **0.1.1-dev**. The source TOC targets
+**Classic Era 1.15.9 / Interface 11509**. A separate package targets the inspected
+**Forever beta 1.60.1.69893** with candidate Interface **16001**, inferred from the
+client version and pending confirmation by in-game `GetBuildInfo()`.
+
+Era addon loading, texture rendering and SavedVariables persistence have been
+confirmed in game. Forever runtime behavior remains unvalidated. The addon
+does not yet restore native frames or include the planned module setup panel.
+
+## Beta installation and first test
+
+From the repository root, run `python3 tools/package_addon.py --target forever-beta`.
+With the beta closed, extract the resulting archive's `ForeverClassicUI` folder
+into `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`, then
+start the beta and enable the addon.
+
+Open talents, the spellbook and the map before running `/fcui inspect`. Then,
+while out of combat, run `/fcui preview`, `/fcui hide` and `/reload` in that order.
+The reload writes the report locally; keep raw SavedVariables out of public
+reports. The repository's `docs/validation-forever.md` tracks this beta test.
+
+The default package target is `era`. Both packages use native textures by
+default; `--with-preview-media` optionally bundles the eight reference samples.
 
 ## Commands
 
@@ -22,6 +42,11 @@ build date, interface number, project, locale, presence of selected APIs and
 protection status of named UI frames. It collects no character names, realms,
 account identifiers or combat data. Frames that load on demand may appear
 absent until their window has been opened.
+
+This version probes 25 named frames, including `PlayerSpellsFrame`,
+`QuestMapFrame`, `SettingsPanel` and `FocusFrame`, and reports native Settings
+registration API presence. The earlier Era result of 19/21 belongs to version
+`0.1.0-dev`; probe counts are not restoration progress.
 
 ## Extension points
 
@@ -47,10 +72,12 @@ From the project root:
 tools/python-env/bin/python tests/run.py
 ```
 
-The tests use Lua 5.1 through Lupa with minimal substitutes for the game's APIs.
+The eight tests use Lua 5.1 through Lupa with minimal substitutes for the game's APIs.
 They verify report collection, SavedVariables preservation during simulated
 reload, combat restrictions and absence of personal or combat data reads.
-Rendering, taint and actual SavedVariables disk writes require in-game testing.
+Era rendering and actual SavedVariables disk writes are confirmed separately.
+Taint, combat behavior and all Forever runtime behavior still require in-game
+testing; passing mock tests does not validate those behaviors.
 
 The original addon code is MIT-licensed; see the repository's root `LICENSE`.
 This license does not cover Blizzard artwork or third-party addon code.

@@ -8,7 +8,8 @@ controls. Nameplates remain as provided by the Forever client.
 
 **Early development:** the current prototype provides client diagnostics and a
 texture preview. It does not yet replace native frames, and Forever compatibility
-has not been validated. The development TOC targets **Classic Era 1.15.9**.
+has not been validated in game. The source TOC targets **Classic Era 1.15.9**;
+a separate diagnostic package targets the inspected **Forever beta 1.60.1.69893**.
 
 ![Classic Era texture reference sheet](docs/images/classic-era-contact-sheet.png)
 
@@ -23,7 +24,7 @@ reference sheet, not a screenshot of a completed in-game interface.*
   [assets/classic-era](assets/classic-era), with provenance and SHA-256 hashes.
 - Local, read-only CASC extraction tools for obtaining interface resources from
   an installed client.
-- Seven behavioral tests running under Lua 5.1 through Lupa.
+- Eight behavioral tests running under Lua 5.1 through Lupa.
 - A [Classic Frames compatibility audit](docs/classicframes-audit.md).
 - An [in-game restoration checklist](docs/ui-coverage.md), distinguishing
   extracted artwork, diagnostic coverage and functional replacement work.
@@ -33,6 +34,8 @@ and is not relicensed under MIT. See [NOTICE.md](NOTICE.md).
 
 ## Try the development addon
 
+### Classic Era
+
 1. Close Classic Era.
 2. Copy `addon/ForeverClassicUI` into that client's `Interface/AddOns` directory.
 3. Start the game and enable **Forever Classic UI** in the addon list.
@@ -40,6 +43,32 @@ and is not relicensed under MIT. See [NOTICE.md](NOTICE.md).
 
 On macOS, the usual destination is
 `/Applications/World of Warcraft/_classic_era_/Interface/AddOns/ForeverClassicUI`.
+
+### Forever beta
+
+Build the separate beta archive:
+
+```sh
+python3 tools/package_addon.py --target forever-beta
+```
+
+1. Close the beta client.
+2. Extract the `ForeverClassicUI` folder from
+   `dist/ForeverClassicUI-0.1.1-dev-forever-beta.zip` into
+   `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`.
+3. Start the beta and enable **Forever Classic UI** in the addon list.
+4. Open talents, the spellbook and the map so their UI modules can load, then run
+   `/fcui inspect` while out of combat.
+5. Run `/fcui preview`, close it with `/fcui hide`, then run `/reload` to save the
+   diagnostic report locally.
+
+This package uses candidate Interface `16001`, inferred from client version
+`1.60.1`; the in-game `GetBuildInfo()` result must confirm it. Source inspection
+identified `PlayerSpellsFrame` for Camelot talents and spellbook, the map frames
+and native Settings registration functions. These findings do not establish
+in-game compatibility. See [the beta validation log](docs/validation-forever.md).
+
+### Commands and reports
 
 | Command | Behavior |
 | --- | --- |
@@ -54,8 +83,10 @@ report is stored in `ForeverClassicUIDB.lastReport`; the game saves it on reload
 or logout. It contains no character, account or combat data. Load-on-demand
 windows may appear absent until opened.
 
-The 21 named-frame probes are only a diagnostic sample. A result such as 19/21
-does not measure how many Classic frames exist or how much of the UI is restored.
+Version `0.1.1-dev` samples 25 named frames and reports native Settings API
+presence. The historical Era result of 19/21 came from version `0.1.0-dev`, which
+had 21 probes. These are diagnostic samples, not counts of all Classic frames or
+measurements of how much of the UI is restored.
 
 The [first in-game smoke test](docs/validation-era.md) confirmed that the addon
 loads, its native texture samples render and the diagnostic report persists on
@@ -73,9 +104,11 @@ tools/python-env/bin/python tests/run.py
 python3 tools/package_addon.py
 ```
 
-The archive is written to `dist/`. Add `--with-preview-media` to include the
-eight texture samples from the checked-in art pack or your local extraction.
-The preview uses native textures by default; the media module also supports
+Archives are written to `dist/`. The default target is `era`; select
+`--target forever-beta` for the separate beta package. Add `--with-preview-media`
+to include the eight texture samples from the checked-in art pack or your local
+extraction.
+Both targets use native textures by default; the media module also supports
 explicit local paths for future client ports.
 
 To generate a quick reference sheet:
