@@ -1,8 +1,11 @@
 # Complete in-game Classic UI scope
 
-The goal is to restore the Classic presentation of the entire in-game interface,
-not only the frames listed by `/fcui inspect`. This scope was clarified on
-September 17, 2026. The reference installation is Classic Era `1.15.9.69722`.
+The goal is to restore the Classic presentation of the in-game interface,
+including unit frames, windows, maps and HUD controls. Nameplates are the explicit
+exception: keep the target client's native nameplates and their behavior.
+This scope was clarified on September 17, 2026. The reference installation is
+Classic Era `1.15.9.69722`; the actual Forever client must be inspected before
+deciding its adaptations.
 
 ## What we currently have
 
@@ -16,6 +19,8 @@ September 17, 2026. The reference installation is Classic Era `1.15.9.69722`.
 - No functional replacement module has been completed. Talent-window detection,
   sample rendering and report persistence have been tested on Era; see
   [the validation log](validation-era.md).
+- The integrated setup panel described below is planned and is not included in
+  the current prototype.
 
 A frame is a runtime UI object with layout, children and behavior. Texture files,
 XML definitions, Lua-created frames and runtime instances have different counts.
@@ -28,7 +33,6 @@ All items below are in scope; unchecked means functional restoration is pending.
 
 - [ ] Player, target, target-of-target, pet, party and raid frames.
 - [ ] Health and resource bars, cast bars, combo points, buffs and debuffs.
-- [ ] Nameplates and associated indicators.
 - [ ] Action bars, pet actions, stances, paging, XP and reputation bars.
 - [ ] Micro menu, bag buttons and other HUD controls.
 - [ ] Minimap, tracking, clock, world map and flight map.
@@ -55,6 +59,45 @@ This checklist organizes the work; it is not a claim that every individual frame
 or asset has already been identified. Split each family into concrete modules as
 its native source and behavior are inspected. Additional Classic windows found
 during that process belong in scope.
+
+## Native Forever nameplates
+
+Nameplates are the indicators above characters in the game world. Preserve their
+native Forever appearance, layout and behavior, including their attached
+indicators. They are excluded from restoration. Player, target, pet, party and
+raid unit frames remain in scope; they are distinct from nameplates.
+
+Reference textures and diagnostic coverage do not expand this boundary. Review
+the actual Forever client before selecting hooks or modifying shared templates,
+so changes to unit frames and windows do not inadvertently restyle nameplates.
+
+## Integrated setup panel
+
+Provide a settings panel integrated into the target client's native game options,
+using the same panel styling and controls. Verify the integration points on the
+actual Forever client before implementation. All labels and help text are English.
+
+- Let players choose Classic styling independently for each implemented module.
+  Checked modules use Classic styling; unchecked modules retain native Forever
+  styling and behavior.
+- Group checkboxes into **Unit Frames**, **Windows** and **HUD**. Unit-frame
+  choices include player, target, pet, party and raid. Window choices include
+  talents, quests, character, spellbook, maps, bags, bank, mail and professions,
+  with further choices following the restoration checklist. HUD choices cover
+  the other in-scope elements such as action bars and the minimap.
+- Keep nameplates native, with no nameplate-restoration checkbox. Explain that
+  boundary once in the panel rather than presenting it as a missing feature.
+- Include an overall enable switch, save the player's selections across reloads
+  and sessions, and provide a reset-to-defaults action. New modules start disabled
+  until the player chooses to enable them.
+- Offer working choices only for implemented, supported modules. The panel must
+  not imply that an unchecked roadmap item already has a functional skin.
+- Turning a module off restores its native presentation. Apply supported changes
+  without a reload where possible; clearly indicate any required reload. Defer
+  changes to protected frames while the player is in combat.
+
+Build this panel as part of the first functional restoration milestone so that
+each subsequent unit-frame, window or HUD module is individually configurable.
 
 ## Native source evidence
 

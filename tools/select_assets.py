@@ -46,8 +46,9 @@ The files retain their extracted bytes and BLP format. File names were resolved
 using the community-maintained wowdev listfile; it is not an official Blizzard
 inventory.
 
-The selection includes frame artwork and icons for the full in-game restoration
-scope, including social, mail, trade, crafting, pet and PvP windows. These
+The selection includes reference frame artwork and icons, including social,
+mail, trade, crafting, pet and PvP windows. The restoration scope keeps the target
+client's native nameplates; inclusion of artwork does not expand that scope. These
 folders can also contain shared expansion artwork; inclusion is not proof that
 a texture is used by the Vanilla UI. This remains a reference selection, not a
 verified complete set of Classic frames.

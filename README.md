@@ -1,9 +1,10 @@
 # Forever Classic UI
 
-An open-source addon project to bring the **entire Classic Era in-game interface
-style to World of Warcraft: Forever**: talents, quests, maps, character panels,
-spellbooks, bags, banks, unit frames, action bars, professions, mail, auctions,
-social panels and the remaining in-game windows and controls.
+An open-source addon project to bring **the entire Classic Era in-game interface,
+except nameplates, to World of Warcraft: Forever**: unit frames, action bars,
+minimap, talents, quests, world and flight maps, character panels, spellbooks,
+bags, banks, professions, mail, auctions, social panels and other windows and
+controls. Nameplates remain as provided by the Forever client.
 
 **Early development:** the current prototype provides client diagnostics and a
 texture preview. It does not yet replace native frames, and Forever compatibility
@@ -24,7 +25,7 @@ reference sheet, not a screenshot of a completed in-game interface.*
   an installed client.
 - Seven behavioral tests running under Lua 5.1 through Lupa.
 - A [Classic Frames compatibility audit](docs/classicframes-audit.md).
-- A [complete in-game restoration checklist](docs/ui-coverage.md), distinguishing
+- An [in-game restoration checklist](docs/ui-coverage.md), distinguishing
   extracted artwork, diagnostic coverage and functional replacement work.
 
 The original code is **MIT licensed**. Blizzard artwork is separately attributed
@@ -94,6 +95,8 @@ The initial local extraction from **Classic Era 1.15.9.69722** recovered
 (approximately 1.8 GB). This includes 200 talent textures and the native talent
 window source. The repository includes a selected frame-art pack, rather than
 the full extraction, zone-map tile collection, shop assets or game UI source.
+The reference pack and diagnostic probes are research resources; their inclusion
+does not establish restoration progress or override the scope checklist.
 
 The extraction explicitly selects the `wow_classic_era` product from the shared
 CASC installation. See [the extraction guide](tools/casc/README.md). Full exports,
@@ -118,15 +121,23 @@ not a port.
 
 ## Roadmap
 
-- Track every in-game UI family in the [restoration checklist](docs/ui-coverage.md).
-- Identify the actual Forever build and available UI APIs.
+- Track all in-game UI families except nameplates in the
+  [restoration checklist](docs/ui-coverage.md).
+- Inspect the actual Forever client, build and UI APIs before final adaptation.
+- Add a setup panel in the game's native options with a checkbox for each
+  restoration module. Unchecked modules retain Forever's appearance; nameplates
+  always remain native and have no restoration option. This panel is planned,
+  not yet implemented.
 - Restore window artwork and layout in isolated, reversible modules.
-- Cover talents, quests, character panels, spellbooks, bags, bank and maps.
-- Cover mail, trade, professions, auctions, social panels, pets, PvP, settings
-  and shared controls as part of the same full-interface scope.
-- Restore unit frames, minimap and action bars while preserving secure gameplay.
+- Cover talents, quests, character panels, spellbooks, bags, bank, world map and
+  flight map windows.
+- Cover mail, trade, professions, auctions, social, pet, PvP and settings windows,
+  including their buttons, tabs and other controls.
+- Restore Classic unit frames, action bars, minimap and the remaining HUD while
+  preserving secure gameplay.
 - Validate each module in combat, at different UI scales and with other addons.
 
 Talent trees and maps must retain the target client's data and mechanics.
-The goal is a complete Classic-style presentation built on the supported client
-APIs. See [CONTRIBUTING.md](CONTRIBUTING.md) to help.
+The goal is a Classic-style in-game interface built on the supported client APIs,
+with Forever's native nameplates retained. See [CONTRIBUTING.md](CONTRIBUTING.md)
+to help.

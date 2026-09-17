@@ -1,8 +1,15 @@
 # Contributing
 
-The first milestone is a tested, modular Classic-style interface for the actual
-Forever client. The current development addon targets Classic Era 1.15.9 for
-asset inspection; it does not yet replace native frames.
+The goal is a tested, modular Classic-style in-game interface for the actual
+Forever client, with native Forever nameplates retained. Inspect that client's
+build, frame hierarchies and available APIs before final adaptation. The current
+development addon targets Classic Era 1.15.9 for asset inspection; it does not yet
+replace native frames.
+
+Unit frames, windows, world and flight maps, action bars, minimap and the remaining
+HUD are in scope. Nameplates are the only excluded in-game UI family. Follow the
+[restoration checklist](docs/ui-coverage.md); a resource's presence in the reference
+pack or diagnostic report does not establish restoration progress.
 
 ## Development
 

@@ -65,7 +65,7 @@ An optional adapter can supplement an already loaded, compatible Classic Frames 
 
 The least coupled integration point is the visual result on Blizzard frames: apply our settings after `PLAYER_LOGIN` or the relevant Blizzard component loads, then use targeted hooks only where the client resets their appearance. Avoid replacing Classic Frames' global `Apply*` functions. A first standalone module needs no access to these internals.
 
-Start with texture and frame diagnostics, followed by a minimal skin for an unprotected window. Add player/target frames and action bars afterward, with combat testing. This produces a testable local companion without first porting all 105 skin files.
+Start with texture and frame diagnostics, inspect the actual Forever client before final adaptation, then build a minimal skin for an unprotected window. Add Classic player/target frames and action bars afterward, with combat testing. The restoration scope includes windows, world and flight maps, minimap and the remaining HUD; nameplates alone stay as provided by the Forever client. This produces a testable local companion without first porting all 105 skin files.
 
 Patching Classic Frames would become preferable only if the target client actually shares its frame hierarchies and an authorized fork is the intended maintenance model. That would require replacing the monolithic TOC with module profiles, isolating styling functions, and handling deferred loading. It is more than a version-number change.
 
