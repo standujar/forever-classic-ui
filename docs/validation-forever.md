@@ -3,7 +3,9 @@
 Date: September 17, 2026. Current development addon: `0.2.3-dev`.
 
 Version `0.2.3-dev` moves Classic UI options directly into native Edit Mode.
-Its release is being prepared; no CurseForge submission is confirmed yet.
+Its Release package was uploaded automatically after CI passed. CurseForge
+reported **Processing** when checked on September 17, 2026; public approval is
+not confirmed.
 
 The `ForeverReframed` 0.2.3-dev beta package is installed locally, with all 13
 files checked against its archive. The previous addon copy was backed up outside
@@ -15,23 +17,37 @@ available; no in-game beta rendering or behavior is confirmed.
 
 ## CurseForge submission
 
-The initial submission was completed on September 17, 2026:
+The current Release was uploaded on September 17, 2026 at 20:17 Europe/Paris:
 
 - Project: **Classic UI - Forever Reframed**, ID `1699904`, under author `k4rno`.
 - Slug: `classic-ui-forever-reframed`.
 - [Project preview](https://www.curseforge.com/wow/addons/classic-ui-forever-reframed/preview).
 - Linked source: [standujar/forever-classic-ui](https://github.com/standujar/forever-classic-ui).
-- Uploaded archive: `ForeverReframed-0.2.2-dev-forever-beta.zip`, file ID `8904620`.
-- Display name: **Classic UI - Forever Reframed 0.2.2-dev**.
+- Uploaded archive: `ForeverReframed-0.2.3-dev-forever-beta.zip`, file ID `8905648`.
+- Display name: **Classic UI - Forever Reframed 0.2.3-dev**.
 - Game version: `1.60.1`; distribution channel: **Release**.
-- Observed status: project **New**, file **Under Review**. Moderator approval is
-  pending; the project and download are not yet publicly available.
+- Observed file status: **Processing**. Public approval is not confirmed.
+
+Source revision `f3e733a` passed both checks and the automatic Publish Release job
+in [GitHub Actions run 35257915758](https://github.com/standujar/forever-classic-ui/actions/runs/35257915758).
+All 37 Lua 5.1 behavioral tests and 21 Python release-tool tests passed. The run's
+`curseforge-upload.json` receipt records project `1699904`, file `8905648`,
+version `0.2.3-dev` and the matching archive. Its SHA-256 is
+`5dcee63033480063e8216f2ec7c73918010dccf9c771b0d67926d1dff91b806d`.
 
 The [author file dashboard](https://authors.curseforge.com/#/projects/1699904/files)
 requires the project's author account. The Release channel does not change the
 experimental feature scope or establish beta runtime compatibility.
 
-The submitted source revision is `e8e5817`.
+### Initial 0.2.2-dev submission
+
+The initial `ForeverReframed-0.2.2-dev-forever-beta.zip` was submitted manually on
+September 17, 2026 as file `8904620`, with display name **Classic UI - Forever
+Reframed 0.2.2-dev**, game version `1.60.1` and channel **Release**. It remained
+**Under Review** when the newer file was checked. The initial project status was
+**New**, pending moderator validation.
+
+That submission's source revision is `e8e5817`.
 [GitHub Actions run 35242087809](https://github.com/standujar/forever-classic-ui/actions/runs/35242087809)
 passed, including all 28 Lua 5.1 behavioral tests. These are offline checks;
 the beta runtime validation below remains outstanding.
@@ -160,9 +176,10 @@ restoration or a claim of in-game safety. Unit-frame and HUD restoration is not
 implemented. Nameplates remain outside restoration and have no setting.
 
 For `0.2.3-dev`, all 37 Lua 5.1 behavioral tests and 21 Python release-tool tests
-pass locally. The addon tests simulate the relevant APIs, including Edit Mode
+pass locally and in the CI run linked above. The addon tests simulate the relevant APIs, including Edit Mode
 integration, persistence, restoration and deferred changes. Their results do
-not establish beta runtime compatibility or confirm a CurseForge upload.
+not establish beta runtime compatibility. The successful upload is separately
+recorded by the receipt and author dashboard.
 The historical `0.2.2-dev` CI result above applies to that version.
 
 ## Edit Mode validation for 0.2.3-dev

@@ -11,9 +11,12 @@ the same rule. Documentation-only or same-version pushes do not publish.
 Uploads always use the **Release** channel, including versions ending in `-dev`.
 
 The `CF_API_TOKEN` repository secret was configured on September 17, 2026.
-An end-to-end upload through this workflow has not yet been tested. The initial
-`0.2.2-dev` file was submitted manually and remains under review with the project;
-it must not be uploaded again to test the automation.
+The first complete automated upload succeeded for `0.2.3-dev`: both checks and
+the Publish Release job passed in
+[run 35257915758](https://github.com/standujar/forever-classic-ui/actions/runs/35257915758).
+The upload receipt records CurseForge file **8905648**, which was **Processing**
+when checked on September 17, 2026. Upload success does not establish public
+approval. Do not upload an already submitted version again to test the workflow.
 
 ## One-time setup
 
@@ -54,8 +57,8 @@ To submit the current version manually, select branch `main` and enable
 **Publish the current main version**. Use this only after checking the
 [CurseForge file dashboard](https://authors.curseforge.com/#/projects/1699904/files)
 to confirm that the version has not already arrived. This is useful after adding
-a missing token or resolving an upload failure. Do not use it for `0.2.2-dev`,
-which was already submitted manually.
+a missing token or resolving an upload failure. Do not use it for any version
+already submitted, including versions still processing or awaiting moderation.
 
 Uploads are not retried automatically. A connection failure can occur after
 CurseForge has accepted a file. The uploader also refuses GitHub's **Re-run jobs**

@@ -1,9 +1,10 @@
 # Classic UI - Forever Reframed
 
 [CurseForge project](https://www.curseforge.com/wow/addons/classic-ui-forever-reframed/preview)
-— project ID `1699904`. The `0.2.2-dev` beta-client package was submitted as a
-**Release** on September 17, 2026. The project and file are awaiting CurseForge
-moderation and are not yet publicly available. See the
+— project ID `1699904`. The `0.2.3-dev` beta-client package was automatically
+uploaded as a **Release** after [CI passed](https://github.com/standujar/forever-classic-ui/actions/runs/35257915758).
+Its status was **Processing** when checked on September 17, 2026; public approval
+is not confirmed. See the
 [submission and validation status](docs/validation-forever.md#curseforge-submission).
 
 **Project goal: restore the entire Classic Era in-game interface in World of
