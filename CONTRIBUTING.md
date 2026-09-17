@@ -8,10 +8,17 @@ The goal is a tested, modular Classic-style in-game interface for the actual
 Forever client, with native Forever nameplates retained. Inspect that client's
 build, frame hierarchies and available APIs before final adaptation. The current
 development addon provides diagnostics for Classic Era 1.15.9 and a separate
-Forever beta 1.60.1.69893 package. Version `0.2.2-dev` prepares native Settings
-integration and three optional window-border modules; no complete Classic window,
-unit frame or HUD replacement is implemented. Beta source inspection and pending
+Forever beta 1.60.1.69893 package. Version `0.2.3-dev` attaches Classic UI options
+directly to native Edit Mode and retains three optional window-border modules;
+no complete Classic window, unit frame or HUD replacement is implemented.
+Beta source inspection and pending
 runtime checks are recorded in [the validation log](docs/validation-forever.md).
+
+The options section belongs to the native Edit Mode manager and follows its
+visibility and movement. Do not introduce a separate Settings category for these
+controls. Addon choices persist immediately and are shared across layouts; native
+Edit Mode Save/Revert does not undo them. Keep that distinction visible beside
+the controls and cover it when validating the integration.
 
 Unit frames, windows, world and flight maps, action bars, minimap and the remaining
 HUD are in scope. Nameplates are the only excluded in-game UI family. Follow the

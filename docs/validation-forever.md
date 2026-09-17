@@ -1,11 +1,14 @@
 # Forever beta validation status
 
-Date: September 17, 2026. Current development addon: `0.2.2-dev`.
+Date: September 17, 2026. Current development addon: `0.2.3-dev`.
 
-The renamed `ForeverReframed` 0.2.2-dev beta package is installed locally with
-all 13 files verified against its archive. The verified older workshop folder
-was backed up outside AddOns before replacement; SavedVariables were untouched.
-Both client targets were rebuilt with and without optional preview artwork.
+Version `0.2.3-dev` moves Classic UI options directly into native Edit Mode.
+Its release is being prepared; no CurseForge submission is confirmed yet.
+
+The `ForeverReframed` 0.2.3-dev beta package is installed locally, with all 13
+files checked against its archive. The previous addon copy was backed up outside
+AddOns before replacement; SavedVariables were untouched. Earlier releases also
+verified packaging for both client targets with optional preview artwork.
 
 The user cannot enter the beta yet. Source inspection and offline tests are
 available; no in-game beta rendering or behavior is confirmed.
@@ -78,8 +81,11 @@ finding a familiar file or global in the shared archives.
   attached as `WorldMapFrame.QuestLog`.
 - The world map is `WorldMapFrame`, with a `BorderFrame` child.
 - Native Settings sources define `RegisterCanvasLayoutCategory`,
-  `RegisterAddOnCategory` and `OpenToCategory`. Their presence in source supports
-  the prepared integrated setup panel; runtime availability is still to be tested.
+  `RegisterAddOnCategory` and `OpenToCategory`. These supported the previous
+  `0.2.2-dev` integration and remain diagnostic API probes; `0.2.3-dev` no longer
+  registers an addon Settings category.
+- The current options section is a direct child of `EditModeManagerFrame` and
+  opens through the native Edit Mode path. Its live behavior is still unvalidated.
 
 The original native sources and detailed extraction manifest stay in ignored
 local directories. They are not included in the addon package.
@@ -99,7 +105,7 @@ session for runtime version reporting, modern-window detection and read-only
 Settings capability detection. Those results apply to that diagnostic version;
 they are not beta runtime validation or a test count for the new version.
 
-The current package is `ForeverReframed-0.2.2-dev-forever-beta.zip`. It includes
+The current package is `ForeverReframed-0.2.3-dev-forever-beta.zip`. It includes
 the one local dialog-border BLP listed in `RequiredMedia.txt`.
 `--with-preview-media` adds eight reference samples, for nine BLPs total. Preview
 lookup remains native by default; experimental window borders use the required
@@ -126,11 +132,17 @@ settings. The earlier installation checks describe the earlier package names.
 
 ## Current implementation and development history
 
-- Native Settings canvas registration, opened with `/foreverui` or
-  `/foreverui settings` from version `0.2.1-dev`. The previous command has been
-  removed in that version.
-- A master switch, per-module checkboxes, status messages, reset and texture
-  preview. `ForeverReframedDB.settings` persists choices; all start disabled.
+- Version `0.2.3-dev` replaces the separate Settings category with a compact
+  **Classic UI** section attached directly to `EditModeManagerFrame`. It follows
+  the manager's visibility and movement.
+- **Escape → Edit Mode**, `/foreverui` and `/foreverui edit` reach the same native
+  surface. `/foreverui settings` remains a compatibility alias. Opening requires
+  an available native manager and an allowed state outside combat.
+- A master switch, per-module checkboxes, status messages and reset.
+  `ForeverReframedDB.settings` choices update immediately and apply across all
+  layouts. Native Edit Mode **Save** and **Revert** do not undo these choices.
+  Fresh installations start disabled; existing `ForeverReframedDB` choices are
+  retained. Texture samples remain available through `/foreverui preview`.
 - Three experimental modules: `quest_window`, `player_spells_window` and
   `world_map_window`. Talents and spellbook share a single checkbox.
 - Classic side and bottom border artwork only. The native top decoration,
@@ -140,34 +152,51 @@ settings. The earlier installation checks describe the earlier package names.
   candidate until observed in game; a mismatch leaves modules unsupported.
 - Deferred combat changes, late-load/reopen handling and restoration of captured
   border alphas when modules are disabled.
-- Diagnostics retaining 25 frame probes and adding settings/restoration states.
+- Diagnostics retaining 25 frame probes and Settings API presence flags, plus
+  Edit Mode control registration and restoration states.
 
 These are code capabilities prepared for testing, not a complete Classic window
 restoration or a claim of in-game safety. Unit-frame and HUD restoration is not
 implemented. Nameplates remain outside restoration and have no setting.
 
-All 28 Lua 5.1 behavioral tests pass: the eight existing diagnostic tests,
-19 settings/restoration tests and one renamed-namespace isolation test. They simulate
-the relevant APIs; no beta runtime result follows from those passes.
+For `0.2.3-dev`, all 37 Lua 5.1 behavioral tests and 21 Python release-tool tests
+pass locally. The addon tests simulate the relevant APIs, including Edit Mode
+integration, persistence, restoration and deferred changes. Their results do
+not establish beta runtime compatibility or confirm a CurseForge upload.
+The historical `0.2.2-dev` CI result above applies to that version.
 
-## First in-game check when beta access opens
+## Edit Mode validation for 0.2.3-dev
 
 1. Start the beta and enable **Classic UI - Forever Reframed - Beta Workshop** in AddOns.
    Restart the client if it was already running when the addon was installed.
-2. Outside combat, open `/foreverui`. Confirm the native Settings category, the
-   default-off master switch and three unchecked window modules.
-3. Open a quest interaction, talents, the spellbook and the world map using the
-   game's normal controls. Talents may require an eligible character. Run
+2. Outside combat, choose **Escape → Edit Mode**. Confirm the attached Classic UI
+   section, master switch and three window modules. Fresh settings should be off;
+   an upgrade from `0.2.2-dev` should retain the player's selections. Confirm that
+   `/foreverui`, `/foreverui edit` and `/foreverui settings` open this same surface.
+3. Move and close/reopen the native Edit Mode window. Verify the Classic UI
+   section follows it, disappears when it closes, and is not duplicated.
+4. Close Edit Mode. Open a quest interaction, talents, the spellbook and the world
+   map using the game's normal controls. Talents may require an eligible character. Run
    `/foreverui inspect` and check the actual build, Interface, frame probes and states.
-4. Enable the master switch and one window module at a time. Verify the side and
-   bottom border, intact top decoration, working buttons and unchanged content.
+5. In Edit Mode, enable the master switch and one window module at a time. Close
+   Edit Mode and verify the side and bottom border, intact top decoration,
+   working buttons and unchanged content.
    Test both talents and spellbook under their shared checkbox, then close and
-   reopen the window. Uncheck the module and confirm the original border returns.
-5. Select one module and run `/reload`. Verify the choice persists and handles a
-   window that has not loaded yet. Check changes deferred during combat and their
-   application afterward; record any taint or blocked-action errors.
-6. Run `/foreverui preview` and check the texture samples, then `/foreverui hide`. Use
-   **Reset to defaults** and confirm the native presentation returns. Run
+   reopen the window. Return to Edit Mode, uncheck the module and confirm the
+   original border returns. Turning the master switch off should disable all styling.
+6. Select a module, switch native Edit Mode layouts, and use native **Save** and
+   **Revert**. Confirm the addon selection stays the same and its explanatory
+   note remains visible. The addon choices are shared across layouts and do not
+   participate in native layout save/revert.
+7. Run `/reload` with a module selected. Verify its selection persists and handles
+   a window that has not loaded yet. Confirm commands cannot open Edit Mode in
+   combat, queued restoration changes apply after combat, and returning to an
+   allowed state restores usable controls. Record taint or blocked-action errors.
+8. At small screen sizes and different UI scales, check every checkbox, label,
+   status and reset action remains readable and clickable. Move the native
+   manager near screen edges and check that the attached section stays usable.
+9. Run `/foreverui preview` and check the texture samples, then `/foreverui hide`.
+   Use the Classic UI reset action and confirm the native presentation returns. Run
    `/foreverui inspect` and `/reload` to save the final report and reset choices.
 
 If the addon cannot load due to an interface-version mismatch, run
@@ -176,6 +205,6 @@ corrected. Report any Lua error together with the action that triggered it.
 
 Record the module, toggle state, triggering action and actual client build for
 each result. Keep raw SavedVariables local and publish only the relevant summary.
-Settings layout, border rendering, saved choices across real reloads, native
-interactions, combat/taint behavior and other-addon compatibility remain untested
+Edit Mode layout and lifecycle, border rendering, saved choices across real
+reloads, native interactions, combat/taint behavior and other-addon compatibility remain untested
 in the beta. Offline tests do not replace these checks.

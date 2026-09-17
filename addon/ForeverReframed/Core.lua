@@ -2,7 +2,7 @@
 local addonName, Addon = ...
 
 Addon.name = addonName
-Addon.version = "0.2.2-dev"
+Addon.version = "0.2.3-dev"
 Addon.modules = {}
 Addon.moduleOrder = {}
 
@@ -50,7 +50,7 @@ end
 function Addon:HandleCommand(input)
     if not self.initialized then self:Initialize() end
     local command = string.lower(string.match(input or "", "^%s*(%S*)") or "")
-    if command == "" or command == "settings" then
+    if command == "" or command == "edit" or command == "settings" then
         local settings = self:GetModule("Settings")
         if settings then settings:Open() end
     elseif command == "status" or command == "inspect" then
@@ -60,7 +60,7 @@ function Addon:HandleCommand(input)
     elseif command == "hide" then
         self:GetModule("Preview"):Hide()
     else
-        self:Print("/foreverui settings: options; /foreverui status: report; /foreverui inspect: details; /foreverui preview: references; /foreverui hide: close.")
+        self:Print("/foreverui edit: Edit Mode options; /foreverui status: report; /foreverui inspect: details; /foreverui preview: references; /foreverui hide: close preview.")
         self:Print("Preview build. Native Forever nameplates are preserved. In-game validation pending.")
     end
 end
@@ -73,6 +73,8 @@ events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_REGEN_DISABLED")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:RegisterEvent("PLAYER_LOGIN")
+events:RegisterEvent("DISPLAY_SIZE_CHANGED")
+events:RegisterEvent("UI_SCALE_CHANGED")
 events:SetScript("OnEvent", function(_, event, loadedAddon)
     if event == "ADDON_LOADED" and loadedAddon == addonName then
         Addon:Initialize()
@@ -82,6 +84,10 @@ events:SetScript("OnEvent", function(_, event, loadedAddon)
         if preview then preview:Hide() end
         local settings = Addon:GetModule("Settings")
         if settings and settings.Refresh then settings:Refresh() end
+    elseif event == "DISPLAY_SIZE_CHANGED" or event == "UI_SCALE_CHANGED" then
+        local settings = Addon:GetModule("Settings")
+        if Addon.initialized and settings and settings.Refresh then settings:Refresh() end
+        return
     end
     if Addon.initialized and (event == "ADDON_LOADED" or event == "PLAYER_LOGIN"
         or event == "PLAYER_REGEN_ENABLED") then

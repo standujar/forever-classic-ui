@@ -14,9 +14,10 @@ final adaptations are chosen.
   and 292 TOC files available through the known file-name list.
 - The repository's expanded reference pack contains 8,827 unchanged textures
   (170,042,504 bytes). It adds 938 textures for previously omitted UI families.
-- Prototype `0.2.2-dev` samples 25 named globals and previews eight textures.
+- Prototype `0.2.3-dev` samples 25 named globals and previews eight textures.
   Diagnostics include new probes for `PlayerSpellsFrame`, `QuestMapFrame`, `SettingsPanel`
-  and `FocusFrame`, plus native Settings API presence flags and restoration states.
+  and `FocusFrame`, plus native Settings API presence flags, Edit Mode control
+  registration and restoration states.
 - The saved Era report from version `0.1.0-dev` detects 19 of its 21 probed globals.
   These are diagnostic samples, not a count of all Classic frames or a completion
   percentage.
@@ -27,19 +28,22 @@ final adaptations are chosen.
   [the validation log](validation-era.md).
 - A Forever beta development package is prepared for the local
   `_classic_beta_` client. Camelot sources identify `PlayerSpellsFrame` for talents
-  and spellbook, `QuestMapFrame`/`WorldMapFrame` for maps and native Settings
-  registration functions. [Beta runtime validation](validation-forever.md) is
+  and spellbook, `QuestMapFrame`/`WorldMapFrame` for maps and the native Edit Mode
+  manager. [Beta runtime validation](validation-forever.md) is
   still pending.
-- The integrated native Settings panel and three default-off window modules are
-  implemented for offline testing. Their beta rendering and behavior remain
+- The Classic UI options attached to native Edit Mode and three default-off
+  window modules are implemented for offline testing. Their beta rendering and behavior remain
   unvalidated while access is unavailable.
 
 ## Current partial implementation
 
-The panel opens with `/foreverui` or `/foreverui settings` and provides a master switch,
-individual module checkboxes, status messages, reset and texture preview. Settings
-persist in `ForeverReframedDB.settings`; the master switch and all selections
-default to off.
+The **Classic UI** section is attached directly to native Edit Mode. Open it with
+**Escape → Edit Mode**, `/foreverui` or `/foreverui edit`; `/foreverui settings`
+remains a compatibility alias. It provides a master switch, module checkboxes,
+status messages and reset. Choices update immediately in
+`ForeverReframedDB.settings`, apply across all layouts and default to off. Native
+Edit Mode **Save** and **Revert** do not undo addon choices. The separate texture
+preview is available through `/foreverui preview`.
 
 | Module | Current change |
 | --- | --- |
@@ -106,34 +110,35 @@ Reference textures and diagnostic coverage do not expand this boundary. Review
 the actual Forever client before selecting hooks or modifying shared templates,
 so changes to unit frames and windows do not inadvertently restyle nameplates.
 
-## Integrated setup panel
+## Integrated Edit Mode options
 
-The first panel implementation uses the target client's native Settings canvas
-category and controls. All labels and help text are English. Source inspection
-identified these integration points; registration, appearance and interaction in
-the actual beta are still unvalidated.
+Version `0.2.3-dev` replaces the separate Settings category with a compact options
+section parented to `EditModeManagerFrame`. It follows the native manager's
+visibility and movement. All labels and help text are English. Integration,
+appearance and interaction in the actual beta are still unvalidated.
 
 - Let players choose Classic styling independently for each implemented module.
   Checked modules use Classic styling; unchecked modules retain native Forever
   styling and behavior.
-- Display the **Windows** group with the three implemented border modules.
+- Display the three implemented window-border modules.
   Talents and spellbook share one checkbox because they share `PlayerSpellsFrame`.
-  Future **Unit Frames** and **HUD** groups and additional window choices will
+  Future unit-frame and HUD choices and additional window choices will
   follow implemented modules. No selectable unit-frame or HUD skin exists yet.
 - Keep nameplates native, with no nameplate-restoration checkbox. Explain that
   boundary once in the panel rather than presenting it as a missing feature.
 - Include an overall enable switch, save the player's selections across reloads
   and sessions, and provide a reset-to-defaults action. New modules start disabled
-  until the player chooses to enable them.
+  until the player chooses to enable them. Selections are shared across layouts;
+  native Edit Mode Save/Revert must not silently change addon choices.
 - Offer working choices only for implemented, supported modules. The panel must
   not imply that an unchecked roadmap item already has a functional skin.
 - Turning a module off restores its native presentation. Apply supported changes
   without a reload where possible; clearly indicate any required reload. Defer
   all changes to game frames while the player is in combat.
 
-Validate this panel with the initial borders, then add individual choices as
+Validate these controls with the initial borders, then add individual choices as
 subsequent unit-frame, window or HUD modules are implemented. The full checklist
-is a roadmap, not a list of controls already available in settings.
+is a roadmap, not a list of controls already available in Edit Mode.
 
 ## Native source evidence
 

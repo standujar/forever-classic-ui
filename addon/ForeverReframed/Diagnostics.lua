@@ -40,6 +40,7 @@ end
 function Diagnostics:Collect()
     local version, build, buildDate, interfaceVersion = GetBuildInfo()
     local settings = type(Settings) == "table" and Settings or {}
+    local editMode = Addon:GetModule("Settings")
     local report = {
         schemaVersion = 1,
         addonVersion = Addon.version,
@@ -60,6 +61,8 @@ function Diagnostics:Collect()
             Settings_RegisterCanvasLayoutCategory = type(settings.RegisterCanvasLayoutCategory) == "function",
             Settings_RegisterAddOnCategory = type(settings.RegisterAddOnCategory) == "function",
             Settings_OpenToCategory = type(settings.OpenToCategory) == "function",
+            ShowUIPanel = type(ShowUIPanel) == "function",
+            EditMode_controls_registered = editMode and editMode.registered == true or false,
         },
         frames = {},
         mediaSource = Addon:GetModule("Media").source,
@@ -108,9 +111,10 @@ function Diagnostics:Run(verbose)
         tostring(report.api.Settings_RegisterCanvasLayoutCategory),
         tostring(report.api.Settings_RegisterAddOnCategory),
         tostring(report.api.Settings_OpenToCategory)))
+    Addon:Print("Edit Mode controls: " .. (report.api.EditMode_controls_registered and "registered" or "unavailable") .. ".")
     if report.restoration then
         Addon:Print("Classic styling: " .. (report.restoration.enabled and "enabled" or "disabled")
-            .. ". Open /foreverui settings to choose window borders.")
+            .. ". Open /foreverui edit to choose window borders in Edit Mode.")
         if verbose then
             for _, option in ipairs(Addon:GetModule("Restoration"):GetOptions()) do
                 local module = report.restoration.modules[option.id]

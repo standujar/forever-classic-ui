@@ -22,7 +22,7 @@ local function harness(saved, configure)
     env.ForeverReframedDB = saved
     env.SlashCmdList = {}
     env.UISpecialFrames = {}
-    env.UIParent = {}
+    env.UIParent = { GetHeight = function() return 1080 end, GetEffectiveScale = function() return 1 end }
     env.WOW_PROJECT_ID = 2
     env.GetBuildInfo = function() return "1.15.9", "69722", "Sep 9 2026", 11509 end
     env.GetLocale = function() return "frFR" end
@@ -100,6 +100,16 @@ local function harness(saved, configure)
             if not wasShown and self.scripts.OnShow then self.scripts.OnShow(self) end
         end
         function frame:IsShown() return self.shown end
+        function frame:IsVisible()
+            if not self.shown then return false end
+            if self.parent and self.parent.IsVisible then return self.parent:IsVisible() end
+            return not self.parent or self.parent.shown ~= false
+        end
+        function frame:IsForbidden() return self.forbidden == true end
+        function frame:IsProtected() return self.protected == true end
+        function frame:GetEffectiveScale() return 1 end
+        function frame:GetBottom() return self.bottom end
+        function frame:GetTop() return self.top end
         function frame:SetChecked(value) self.checked = value and true or false end
         function frame:GetChecked() return self.checked end
         function frame:SetEnabled(value) self.enabled = value end
@@ -536,98 +546,130 @@ test("failed rollback remains tracked until disable can restore the window", fun
     equal(engine:GetStatus("stuck_window"), "native")
 end)
 
-local function withSettings(env, state)
-    state.settingsCalls = { canvas = 0, category = 0, open = 0 }
+local function withEditMode(env, state)
+    state.editModeCalls = { open = 0, hooks = 0, settings = 0 }
+    local manager = env.CreateFrame("Frame", "EditModeManagerFrame", env.UIParent)
+    manager.width, manager.height = 510, 280
+    manager.bottom, manager.top = 420, 700
+    manager.shown, manager.active = false, false
+    function manager:CanEnterEditMode() return state.canEnter ~= false end
+    function manager:IsEditModeActive() return self.active end
+    local hook = manager.HookScript
+    function manager:HookScript(event, callback)
+        state.editModeCalls.hooks = state.editModeCalls.hooks + 1
+        hook(self, event, callback)
+    end
+    function manager:SetSize() error("Must not resize the native manager") end
+    function manager:SetHeight() error("Must not resize the native manager") end
+    env.ShowUIPanel = function(frame)
+        equal(frame, manager)
+        equal(state.combat, false)
+        state.editModeCalls.open = state.editModeCalls.open + 1
+        manager.active = true
+        manager:Show()
+    end
     env.Settings = {
-        RegisterCanvasLayoutCategory = function(panel, label)
-            state.settingsCalls.canvas = state.settingsCalls.canvas + 1
-            equal(label, "Classic UI - Forever Reframed")
-            state.settingsPanel = panel
-            return { GetID = function() return 17 end }
-        end,
-        RegisterAddOnCategory = function(category)
-            state.settingsCalls.category = state.settingsCalls.category + 1
-            equal(category:GetID(), 17)
-        end,
-        OpenToCategory = function(id)
-            equal(id, 17)
-            state.settingsCalls.open = state.settingsCalls.open + 1
+        RegisterCanvasLayoutCategory = function()
+            state.editModeCalls.settings = state.editModeCalls.settings + 1
+            error("A separate settings category must not be created")
         end,
     }
+    return manager
 end
 
-test("Settings registers once and the sole foreverui command opens its native category", function()
-    local state = harness(nil, withSettings)
+test("Classic controls belong to native Edit Mode with no separate Settings category", function()
+    local state = harness(nil, withEditMode)
+    local settings = state.addon:GetModule("Settings")
+    local manager = state.env.EditModeManagerFrame
+    equal(settings.registered, true)
+    equal(settings.panel.parent, manager)
+    equal(settings.panel.ignoreInLayout, true)
+    equal(settings.panel:IsVisible(), false)
+    equal(state.editModeCalls.settings, 0)
+    equal(state.env.ForeverReframedSettingsPanel, nil)
     equal(state.env.SLASH_FOREVERREFRAMED1, "/foreverui")
     equal(state.env.SLASH_FOREVERREFRAMED2, nil)
-    for name, value in pairs(state.env) do
-        if name:match("^SLASH_") then
-            assert(value ~= "/fcui", "The retired command must not remain registered")
-        end
-    end
-    local settings = state.addon:GetModule("Settings")
-    equal(state.settingsCalls.canvas, 1)
-    equal(state.settingsCalls.category, 1)
-    equal(state.settingsCalls.open, 0)
-    equal(settings.panel:IsShown(), false)
+    local hooks = state.editModeCalls.hooks
     state:emit("PLAYER_LOGIN")
     state:emit("ADDON_LOADED", "Blizzard_PlayerSpells")
+    equal(state.editModeCalls.hooks, hooks)
     state:command("")
-    state:command(" settings ")
-    equal(state.settingsCalls.open, 2)
-    equal(state.settingsCalls.canvas, 1)
-    equal(state.settingsCalls.category, 1)
+    state:command(" edit ")
+    state:command("settings")
+    equal(state.editModeCalls.open, 1)
+    equal(settings.panel:IsVisible(), true)
     equal(state.nativeMutations, 0)
 end)
 
-test("Settings appears after its API arrives and handles unavailable APIs gracefully", function()
+test("late Edit Mode initialization waits until combat ends", function()
     local state = harness()
     local settings = state.addon:GetModule("Settings")
-    equal(settings.panel, nil)
     state:command("")
     equal(settings.panel, nil)
-    assert(state.messages[#state.messages]:find("not available", 1, true))
-    withSettings(state.env, state)
+    assert(#state.messages > 0)
+    withEditMode(state.env, state)
     state.combat = true
-    state:command("settings")
-    state:emit("ADDON_LOADED", "Blizzard_Settings")
-    equal(state.settingsCalls.canvas, 0)
+    state:command("edit")
+    state:emit("ADDON_LOADED", "Blizzard_EditMode")
+    equal(settings.panel, nil)
+    equal(state.editModeCalls.hooks, 0)
     state.combat = false
     state:emit("PLAYER_REGEN_ENABLED")
-    equal(state.settingsCalls.canvas, 1)
-    equal(state.settingsCalls.category, 1)
-    state:command("settings")
-    equal(state.settingsCalls.open, 1)
-end)
-
-test("Settings registration failure retries without duplicating the native category", function()
-    local attempts = 0
-    local state = harness(nil, function(env, current)
-        withSettings(env, current)
-        local register = env.Settings.RegisterAddOnCategory
-        env.Settings.RegisterAddOnCategory = function(category)
-            attempts = attempts + 1
-            if attempts == 1 then error("Settings registration temporarily unavailable") end
-            register(category)
-        end
-    end)
-    local settings = state.addon:GetModule("Settings")
-    equal(settings.registered, nil)
-    equal(state.settingsCalls.canvas, 1)
-    state:emit("PLAYER_LOGIN")
     equal(settings.registered, true)
-    equal(state.settingsCalls.canvas, 1)
-    equal(state.settingsCalls.category, 1)
-    equal(attempts, 2)
-    state:command("settings")
-    equal(attempts, 2)
-    equal(state.settingsCalls.open, 1)
+    state:command("edit")
+    equal(state.editModeCalls.open, 1)
 end)
 
-test("a failed settings panel stays hidden and is not repeatedly reconstructed", function()
+test("opening Edit Mode may load the missing Blizzard module outside combat", function()
+    local loads = 0
+    local state = harness(nil, function(env, current)
+        env.C_AddOns = { LoadAddOn = function(name)
+            equal(name, "Blizzard_EditMode")
+            loads = loads + 1
+            withEditMode(env, current)
+            return true
+        end }
+    end)
+    state.combat = true
+    state:command("")
+    equal(loads, 0)
+    state.combat = false
+    state:command("")
+    equal(loads, 1)
+    equal(state.editModeCalls.open, 1)
+end)
+
+test("native Edit Mode entry restrictions and UI errors leave diagnostics available", function()
+    local state = harness(nil, withEditMode)
+    local settings = state.addon:GetModule("Settings")
+    state.canEnter = false
+    equal(settings:Open(), false)
+    equal(state.editModeCalls.open, 0)
+    state.canEnter = true
+    state.env.ShowUIPanel = function() error("UI unavailable") end
+    equal(settings:Open(), false)
+    equal(settings.panel:IsVisible(), false)
+    state:command("inspect")
+    equal(state.addon.db.lastReport.client.interfaceVersion, 11509)
+end)
+
+test("protected or forbidden Edit Mode managers are not modified", function()
+    for _, key in ipairs({ "protected", "forbidden" }) do
+        local state = harness(nil, function(env, current)
+            withEditMode(env, current)[key] = true
+        end)
+        local settings = state.addon:GetModule("Settings")
+        equal(settings.panel, nil)
+        equal(state.editModeCalls.hooks, 0)
+        equal(settings:Open(), false)
+        equal(state.editModeCalls.open, 0)
+    end
+end)
+
+test("failed Edit Mode control construction stays hidden without repeated attempts", function()
     local attempts = 0
     local state = harness(nil, function(env, current)
-        withSettings(env, current)
+        withEditMode(env, current)
         local create = env.CreateFrame
         env.CreateFrame = function(kind, ...)
             if kind == "CheckButton" then
@@ -639,34 +681,121 @@ test("a failed settings panel stays hidden and is not repeatedly reconstructed",
     end)
     local settings = state.addon:GetModule("Settings")
     equal(settings.panel, nil)
-    equal(state.env.ForeverReframedSettingsPanel:IsShown(), false)
     equal(attempts, 1)
     state:emit("PLAYER_LOGIN")
     state:emit("ADDON_LOADED", "AnotherBlizzardAddon")
-    state:command("settings")
+    equal(settings:Open(), false)
     equal(attempts, 1)
-    equal(state.settingsCalls.canvas, 0)
-    assert(state.messages[#state.messages]:find("Could not initialize", 1, true))
+    for _, frame in ipairs(state.frames) do
+        if frame.parent == state.env.EditModeManagerFrame then equal(frame:IsVisible(), false) end
+    end
     state:command("status")
     equal(state.addon.db.lastReport.client.interfaceVersion, 11509)
 end)
 
-test("opening Settings handles a native API failure while diagnostics remain available", function()
-    local state = harness(nil, withSettings)
-    state.env.Settings.OpenToCategory = function() error("Settings cannot open yet") end
-    equal(state.addon:GetModule("Settings"):Open(), false)
-    assert(state.messages[#state.messages]:find("Could not open", 1, true))
-    state:command("inspect")
-    equal(state.addon.db.lastReport.client.interfaceVersion, 11509)
-    equal(state.nativeMutations, 0)
+test("controls follow a temporary native hide and reopen without a new Edit Mode entry", function()
+    local state = harness(nil, withEditMode)
+    local manager = state.env.EditModeManagerFrame
+    local settings = state.addon:GetModule("Settings")
+    state:command("")
+    equal(settings.panel:IsVisible(), true)
+    manager:Hide()
+    equal(manager.active, true)
+    equal(settings.panel:IsVisible(), false)
+    manager:Show()
+    equal(settings.panel:IsVisible(), true)
+    manager.active = false
+    manager:Hide()
+    equal(settings.panel:IsVisible(), false)
 end)
 
-test("Settings checkbox callbacks save selections and reset restores native appearance", function()
-    local state = harness(nil, withSettings)
+test("opening Edit Mode from the game menu shows the controls without a slash command", function()
+    local state = harness(nil, withEditMode)
+    local manager = state.env.EditModeManagerFrame
+    state.env.ShowUIPanel(manager)
+    local settings = state.addon:GetModule("Settings")
+    equal(settings.panel:IsVisible(), true)
+    assert(settings.note.text:find("Save/Revert", 1, true))
+    state:command("inspect")
+    equal(state.addon.db.lastReport.api.EditMode_controls_registered, true)
+end)
+
+test("attached controls move above a low native manager and leave its dimensions intact", function()
+    local state = harness(nil, withEditMode)
+    state:command("")
+    local manager = state.env.EditModeManagerFrame
+    local settings = state.addon:GetModule("Settings")
+    equal(settings.panel.points[1][1], "TOPLEFT")
+    manager.bottom, manager.top = 20, 300
+    manager.scripts.OnDragStop(manager)
+    equal(settings.panel.points[1][1], "BOTTOMLEFT")
+    equal(settings.panel.points[1][2], manager)
+    equal(settings.panel.points[1][3], "TOPLEFT")
+    equal(manager:GetHeight(), 280)
+    equal(manager:GetWidth(), 510)
+    equal(settings.panel.ignoreInLayout, true)
+    assert(settings.panel:GetHeight() <= 1080 - manager.top)
+end)
+
+test("hidden Edit Mode controls reject stale clicks", function()
+    local state = harness(nil, withEditMode)
+    local engine = restoration(state)
+    registerFixture(state)
+    state:command("")
+    engine:SetEnabled(true)
+    local settings = state.addon:GetModule("Settings")
+    local row = settings.rows.test_window
+    state.env.EditModeManagerFrame:Hide()
+    row.checkbox:SetChecked(true)
+    row.checkbox.scripts.OnClick(row.checkbox)
+    settings.resetButton.scripts.OnClick(settings.resetButton)
+    equal(engine:GetSelection("test_window"), false)
+    equal(engine:IsEnabled(), true)
+end)
+
+test("expanded Edit Mode on a short display does not lose its native bottom controls", function()
+    local state = harness(nil, withEditMode)
+    state:command("")
+    local manager = state.env.EditModeManagerFrame
+    local settings = state.addon:GetModule("Settings")
+    state.env.UIParent.GetHeight = function() return 768 end
+    manager.bottom, manager.top = 118, 668
+    state:emit("DISPLAY_SIZE_CHANGED")
+    equal(settings.panel.points[1][1], "TOPLEFT")
+    assert(settings.panel:GetHeight() <= 102, "The section must fit below the native buttons")
+    equal(settings.panel:IsVisible(), true)
+    assert(settings.content:GetHeight() > settings.panel:GetHeight(), "All controls remain accessible by scrolling")
+    manager.bottom, manager.top = 20, 300
+    state:emit("UI_SCALE_CHANGED")
+    equal(settings.panel.points[1][1], "BOTTOMLEFT")
+    state.combat = true
+    state:emit("UI_SCALE_CHANGED")
+    equal(settings.panel:IsVisible(), false)
+end)
+
+test("insufficient screen space hides addon controls and moving Edit Mode restores them", function()
+    local state = harness(nil, withEditMode)
+    local manager = state.env.EditModeManagerFrame
+    local settings = state.addon:GetModule("Settings")
+    state.env.UIParent.GetHeight = function() return 768 end
+    manager.bottom, manager.top = 20, 750
+    state:command("")
+    equal(settings.panel:IsVisible(), false)
+    settings.masterCheckbox:SetChecked(true)
+    settings.masterCheckbox.scripts.OnClick(settings.masterCheckbox)
+    equal(restoration(state):IsEnabled(), false)
+    manager.top = 300
+    manager.scripts.OnDragStop(manager)
+    equal(settings.panel:IsVisible(), true)
+end)
+
+test("Edit Mode checkbox choices apply immediately and reset restores native appearance", function()
+    local state = harness(nil, withEditMode)
     local engine = restoration(state)
     local settings = state.addon:GetModule("Settings")
     local calls = registerFixture(state)
     engine:Reconcile()
+    state:command("")
     local row = settings.rows.test_window
     equal(row.checkbox:IsEnabled(), false)
     settings.masterCheckbox:SetChecked(true)
@@ -685,6 +814,44 @@ test("Settings checkbox callbacks save selections and reset restores native appe
     for _, descriptor in ipairs(engine:GetOptions()) do
         assert(not descriptor.id:find("nameplate", 1, true))
     end
+end)
+
+test("Edit Mode choices survive closing reopening and SavedVariables reload", function()
+    local state = harness(nil, withEditMode)
+    local engine = restoration(state)
+    registerFixture(state)
+    state:command("")
+    engine:SetEnabled(true)
+    engine:SetSelection("test_window", true)
+    local manager = state.env.EditModeManagerFrame
+    manager.active = false
+    manager:Hide()
+    equal(engine:GetSelection("test_window"), true)
+    state:command("")
+    equal(state.addon:GetModule("Settings").rows.test_window.checkbox:GetChecked(), true)
+    local nextState = harness(clone(state.env.ForeverReframedDB), withEditMode)
+    registerFixture(nextState)
+    restoration(nextState):Reconcile()
+    nextState:command("")
+    local settings = nextState.addon:GetModule("Settings")
+    equal(settings.masterCheckbox:GetChecked(), true)
+    equal(settings.rows.test_window.checkbox:GetChecked(), true)
+end)
+
+test("unsupported Edit Mode checkboxes cannot enable a restoration module", function()
+    local state = harness(nil, withEditMode)
+    local engine = restoration(state)
+    local calls = registerFixture(state, "unsupported_window", {
+        support = function() return false, "Unsupported client" end,
+    })
+    state:command("")
+    engine:SetEnabled(true)
+    local row = state.addon:GetModule("Settings").rows.unsupported_window
+    equal(row.checkbox:IsEnabled(), false)
+    row.checkbox:SetChecked(true)
+    row.checkbox:Click()
+    equal(engine:GetSelection("unsupported_window"), false)
+    equal(calls.apply, 0)
 end)
 
 local nativePieces = { "LeftEdge", "RightEdge", "BottomEdge", "BottomLeftCorner", "BottomRightCorner" }
@@ -813,13 +980,14 @@ test("window skins roll back a partial native texture mutation", function()
     for _, piece in ipairs(nativePieces) do equal(native.slice[piece].alpha, native.originals[piece]) end
 end)
 
-test("settings changes during combat defer every native window mutation", function()
+test("Edit Mode controls hide in combat and stale clicks cannot change saved selections", function()
     local state = harness(nil, function(env, current, region)
         withNativeWindows(env, current, region)
-        withSettings(env, current)
+        withEditMode(env, current)
     end)
     local engine = restoration(state)
     local settings = state.addon:GetModule("Settings")
+    state:command("")
     settings.masterCheckbox:SetChecked(true)
     settings.masterCheckbox:Click()
     local row = settings.rows.quest_window
@@ -827,16 +995,20 @@ test("settings changes during combat defer every native window mutation", functi
     row.checkbox:Click()
     equal(engine:GetStatus("quest_window"), "active")
     state.combat = true
+    state:emit("PLAYER_REGEN_DISABLED")
+    equal(settings.panel:IsVisible(), false)
     local before = state.nativeMutations
     row.checkbox:SetChecked(false)
-    row.checkbox:Click()
-    equal(engine:GetStatus("quest_window"), "pending")
-    assert(row.status.text:find("Pending", 1, true))
-    state.windows.QuestFrame.chrome.scripts.OnShow()
-    settings.resetButton:Click()
+    row.checkbox.scripts.OnClick(row.checkbox)
+    settings.resetButton.scripts.OnClick(settings.resetButton)
+    equal(engine:GetSelection("quest_window"), true)
+    equal(engine:IsEnabled(), true)
     equal(state.nativeMutations, before)
     state.combat = false
     state:emit("PLAYER_REGEN_ENABLED")
+    equal(settings.panel:IsVisible(), true)
+    equal(row.checkbox:GetChecked(), true)
+    settings.resetButton:Click()
     local native = state.windows.QuestFrame
     for _, piece in ipairs(nativePieces) do equal(native.slice[piece].alpha, native.originals[piece]) end
     equal(engine:GetStatus("quest_window"), "native")

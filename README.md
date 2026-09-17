@@ -13,14 +13,14 @@ minimap, talents, quests, world and flight maps, character panels, spellbooks,
 bags, banks, professions, mail, auctions, social panels and other windows and
 controls. Nameplates remain as provided by the Forever client.
 
-Each part of the interface is intended to be selectable in the game's native
-Settings panel, so players can choose where to use Classic styling and where to
+Each part of the interface is intended to be selectable directly in the game's
+Edit Mode, so players can choose where to use Classic styling and where to
 keep Forever's presentation.
 
-**Current implementation — early development:** version **0.2.2-dev** includes an
-integrated settings panel and three experimental window-border modules, alongside
-diagnostics and a texture
-preview. Everything starts disabled. These are partial borders, not restored
+**Current implementation — early development:** version **0.2.3-dev** adds a
+Classic UI section directly to native Edit Mode and retains three experimental
+window-border modules, alongside diagnostics and a texture preview. Fresh
+settings start disabled. These are partial borders, not restored
 Classic windows; unit-frame and HUD restoration is not implemented. The source
 TOC targets **Classic Era 1.15.9**; the experimental modules require **Forever beta
 1.60.1.69893 / candidate Interface 16001**. All new behavior remains unvalidated
@@ -29,10 +29,13 @@ in game while beta access is unavailable.
 The CurseForge Release channel describes the uploaded file's distribution
 category; the implementation remains experimental with the limitations above.
 
-Open the addon with **`/foreverui`**. Version `0.2.2-dev` introduces the
-**Classic UI - Forever Reframed** name and a distinct `ForeverReframed` addon
-folder and namespace. It starts with fresh `ForeverReframedDB` settings; older
-development settings and reports are left untouched and are not imported.
+Open native Edit Mode with **`/foreverui`** or **`/foreverui edit`**, or use
+**Escape → Edit Mode**. The Classic UI options follow that window as it opens,
+closes or moves. The older `/foreverui settings` subcommand opens the same place.
+Version `0.2.2-dev` introduced the **Classic UI - Forever Reframed** name and a
+distinct `ForeverReframed` addon folder and namespace. Version `0.2.3-dev` keeps
+those `ForeverReframedDB` choices;
+settings and reports from the older addon namespace are not imported.
 
 ![Classic Era artwork reference — restoration targets](docs/images/classic-era-contact-sheet.png)
 
@@ -47,8 +50,8 @@ beta modules.
 
 ## What's included
 
-- An original modular Lua addon with `/foreverui` settings, per-module selections,
-  client diagnostics and a texture preview.
+- An original modular Lua addon with Classic UI options in Edit Mode,
+  per-module selections, client diagnostics and a texture preview.
 - Experimental side and bottom borders for quest interactions, the combined
   talents/spellbook window and the world map. The native top decoration, portrait,
   title, buttons, dimensions, content layout and gameplay remain unchanged.
@@ -56,7 +59,8 @@ beta modules.
   [assets/classic-era](assets/classic-era), with provenance and SHA-256 hashes.
 - Local, read-only CASC extraction tools for obtaining interface resources from
   an installed client.
-- 28 behavioral tests running under Lua 5.1 through Lupa.
+- 37 addon behavioral tests under Lua 5.1 through Lupa, plus 21 Python tests for
+  release validation and upload handling.
 - A [Classic Frames compatibility audit](docs/classicframes-audit.md).
 - An [in-game restoration checklist](docs/ui-coverage.md), distinguishing
   extracted artwork, diagnostic coverage and functional replacement work.
@@ -76,10 +80,10 @@ of these areas is still pending:
 - **HUD and shared controls:** action bars, stance/pet bars, minimap, micro menu,
   XP/reputation bars, tooltips, chat, menus, dialogs, tabs and other in-game controls.
 
-Work starts with validating the setup panel and the three partial window-border
-modules in the beta, then building unit-frame styling and complete Classic
+Work starts with validating the Edit Mode options and the three partial
+window-border modules in the beta, then building unit-frame styling and complete Classic
 window layouts, followed by the remaining HUD and shared controls. Available
-modules will be added to the same settings panel as they are implemented.
+modules will be added to the same Edit Mode section as they are implemented.
 Nameplates remain native throughout. The [full checklist](docs/ui-coverage.md)
 tracks the scope and distinguishes finished work from planned restoration.
 
@@ -111,15 +115,18 @@ python3 tools/package_addon.py --target forever-beta
 
 1. Close the beta client.
 2. Extract the `ForeverReframed` folder from
-   `dist/ForeverReframed-0.2.2-dev-forever-beta.zip` into
+   `dist/ForeverReframed-0.2.3-dev-forever-beta.zip` into
    `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`.
 3. Start the beta and enable **Classic UI - Forever Reframed** in the addon list.
-4. Open `/foreverui` outside combat. Confirm that the master switch and all module
-   checkboxes start off. Open quest interactions, talents/spellbook and the map
-   using the game's normal controls, then run `/foreverui inspect` for a baseline.
-5. Enable the master switch and one available window module at a time. Check its
-   border and native controls, then uncheck it to verify the original appearance
-   returns. The combined talents/spellbook window has one checkbox.
+4. Outside combat, use **Escape → Edit Mode** or `/foreverui`. Confirm the attached
+   Classic UI section. On a fresh installation, the master switch and all module
+   checkboxes start off. Close Edit Mode, open quest interactions, talents/spellbook
+   and the map using the game's normal controls, then run `/foreverui inspect`
+   for a baseline.
+5. Return to Edit Mode and enable the master switch and one available window
+   module at a time. Close Edit Mode to check its border and native controls,
+   then uncheck the module to verify the original appearance returns. The
+   combined talents/spellbook window has one checkbox.
 6. Run `/foreverui preview`, close it with `/foreverui hide`, and use **Reset to defaults**
    to turn restoration off. Run `/foreverui inspect` and `/reload` to save the final
    report and settings locally.
@@ -127,14 +134,17 @@ python3 tools/package_addon.py --target forever-beta
 This package uses candidate Interface `16001`, inferred from client version
 `1.60.1`; the in-game `GetBuildInfo()` result must confirm it. Source inspection
 identified `PlayerSpellsFrame` for Camelot talents and spellbook, the map frames
-and native Settings registration functions. These findings do not establish
+and the native Edit Mode manager. These findings do not establish
 in-game compatibility. Modules require the exact version, build and candidate
 Interface value, plus the expected unprotected frame structure. Unsupported
 windows keep their native appearance. See [the beta validation log](docs/validation-forever.md).
 
-The native Settings panel has a master switch, individual window checkboxes,
-status messages, **Reset to defaults** and **Texture preview**. Selections persist
-in `ForeverReframedDB.settings`. Disabling a module restores the border texture
+The Classic UI section in Edit Mode has a master switch, individual window
+checkboxes, status messages and a reset action. There is no separate addon
+Settings category. Choices update immediately in `ForeverReframedDB.settings`
+and apply across all Edit Mode layouts. Native **Save** and **Revert** do not save
+or undo these addon choices; use the Classic UI checkboxes or reset action.
+Disabling a module restores the border texture
 alphas captured when it was enabled. Changes wait until combat ends; windows
 loaded or reopened later are handled by the restoration engine. These mechanisms
 have offline tests, but their actual rendering, interactions and combat behavior
@@ -144,9 +154,10 @@ still need beta validation. Nameplates have no restoration option.
 
 | Command | Behavior |
 | --- | --- |
-| `/foreverui` or `/foreverui settings` | Opens the addon panel in native game Settings outside combat |
+| `/foreverui` or `/foreverui edit` | Opens native Edit Mode with the Classic UI options outside combat |
+| `/foreverui settings` | Compatibility alias for the same Edit Mode options |
 | `/foreverui status` | Reports client build and UI capabilities |
-| `/foreverui inspect` | Includes frame availability/protection, Settings capabilities and restoration states |
+| `/foreverui inspect` | Includes frame availability/protection, Edit Mode registration, Settings capabilities and restoration states |
 | `/foreverui preview` | Toggles texture samples for unit frames, buttons, quests and talents |
 | `/foreverui hide` | Closes the preview; Escape also works |
 
@@ -156,8 +167,8 @@ report is stored in `ForeverReframedDB.lastReport`; the game saves it on reload
 or logout. It contains no character, account or combat data. Load-on-demand
 windows may appear absent until opened.
 
-Version `0.2.2-dev` samples 25 named frames and reports native Settings API
-presence and restoration states. The historical Era result of 19/21 came from
+Version `0.2.3-dev` samples 25 named frames and reports native Settings API
+presence, Edit Mode control registration and restoration states. The historical Era result of 19/21 came from
 version `0.1.0-dev`, which had 21 probes. These are diagnostic samples, not counts
 of all Classic frames or measurements of how much of the UI is restored.
 
@@ -236,9 +247,9 @@ not a port.
 - Track all in-game UI families except nameplates in the
   [restoration checklist](docs/ui-coverage.md).
 - Inspect the actual Forever client, build and UI APIs before final adaptation.
-- Validate the prepared native Settings panel and three experimental border
-  modules in the beta, including enabling, disabling, reloads and combat.
-- Extend the setup panel as additional restoration modules are implemented.
+- Validate the options attached to native Edit Mode and the three experimental
+  border modules, including layouts, native Save/Revert, reloads and combat.
+- Extend the Edit Mode options as additional restoration modules are implemented.
   Unchecked modules retain Forever's appearance; nameplates always remain native.
 - Restore window artwork and layout in isolated, reversible modules.
 - Cover talents, quests, character panels, spellbooks, bags, bank, world map and

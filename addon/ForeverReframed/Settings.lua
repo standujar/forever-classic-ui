@@ -2,7 +2,6 @@
 local _, Addon = ...
 local SettingsPanel = Addon:RegisterModule("Settings", {})
 
-local groupOrder = { "Unit Frames", "Windows", "HUD" }
 local statusLabels = {
     native = "Native appearance",
     active = "Classic styling active",
@@ -32,137 +31,168 @@ local function checkbox(parent, text)
     return button
 end
 
+local function managerAvailable(manager)
+    if not manager then return false end
+    local ok, available = pcall(function()
+        -- Check forbidden access before inspecting the rest of the manager.
+        if type(manager.IsForbidden) ~= "function" or manager:IsForbidden() then return false end
+        if type(manager.IsProtected) ~= "function" or manager:IsProtected() then return false end
+        for _, method in ipairs({ "HookScript", "IsShown", "IsEditModeActive", "CanEnterEditMode", "GetWidth" }) do
+            if type(manager[method]) ~= "function" then return false end
+        end
+        return true
+    end)
+    return ok and available == true
+end
+
 function SettingsPanel:Initialize()
     self:EnsureRegistered()
+end
+
+function SettingsPanel:IsEditModeVisible()
+    if not self.manager then return false end
+    local ok, visible = pcall(function()
+        return self.manager:IsShown() and self.manager:IsEditModeActive() == true
+    end)
+    return ok and visible == true
+end
+
+function SettingsPanel:CanChange()
+    return self.registered and not Addon:IsInCombat() and self:IsEditModeVisible()
+        and self.layoutFits ~= false and self.panel and self.panel:IsShown()
 end
 
 function SettingsPanel:EnsureRegistered()
     if self.registered then return true end
     if self.panelCreationFailed then return false end
     if Addon:IsInCombat() or not Addon:GetModule("Restoration") then return false end
-    if type(Settings) ~= "table"
-        or type(Settings.RegisterCanvasLayoutCategory) ~= "function"
-        or type(Settings.RegisterAddOnCategory) ~= "function"
-        or type(Settings.OpenToCategory) ~= "function" then
-        return false
-    end
-    local stage = "panel"
+    local manager = EditModeManagerFrame
+    if not managerAvailable(manager) then return false end
     local ok, failure = pcall(function()
-        local panel = self:CreatePanel()
-        stage = "category"
-        if not self.category then
-            local category = Settings.RegisterCanvasLayoutCategory(panel, "Classic UI - Forever Reframed")
-            assert(category and type(category.GetID) == "function", "Settings category unavailable")
-            self.category = category
-        end
-        stage = "registration"
-        Settings.RegisterAddOnCategory(self.category)
+        self.manager = manager
+        self:CreatePanel(manager)
+        -- Hooks preserve the native scripts. OnHide is also needed when Blizzard
+        -- temporarily hides Edit Mode to open Settings without exiting Edit Mode.
+        manager:HookScript("OnShow", function() self:Refresh() end)
+        manager:HookScript("OnHide", function()
+            if self.panel then self.panel:Hide() end
+            self.spaceWarningShown = nil
+        end)
+        manager:HookScript("OnSizeChanged", function()
+            if not Addon:IsInCombat() then self:Refresh() end
+        end)
+        manager:HookScript("OnDragStop", function()
+            if not Addon:IsInCombat() then self:Refresh() end
+        end)
+        self.registered = true
+        self:Refresh()
     end)
     if not ok then
         self.lastError = tostring(failure)
-        if stage == "panel" then
-            -- Frame construction may have left partially initialized children.
-            -- Keep them hidden and require a reload rather than reusing them or
-            -- retrying construction on every subsequent ADDON_LOADED event.
-            self.panelCreationFailed = true
-            if self.panel then pcall(self.panel.Hide, self.panel) end
-            if self.scroll then pcall(self.scroll.SetScript, self.scroll, "OnSizeChanged", nil) end
-            self.panel, self.frame = nil, nil
-        end
+        self.registered = false
+        -- Partially constructed frames/hooks cannot be unregistered safely.
+        -- Leave them inert and require a reload instead of duplicating them.
+        self.panelCreationFailed = true
+        if self.panel then pcall(self.panel.Hide, self.panel) end
+        if self.scroll then pcall(self.scroll.SetScript, self.scroll, "OnSizeChanged", nil) end
+        self.panel, self.frame, self.scroll, self.content = nil, nil, nil, nil
         return false
     end
     self.lastError = nil
-    self.registered = true
-    self:Refresh()
     return true
 end
 
 function SettingsPanel:Open()
     if Addon:IsInCombat() then
-        Addon:Print("Open settings outside combat. Use /foreverui status to inspect the current state.")
+        Addon:Print("Open Edit Mode outside combat. Use /foreverui status to inspect the current state.")
         return false
     end
+    if not EditModeManagerFrame and type(C_AddOns) == "table" and type(C_AddOns.LoadAddOn) == "function" then
+        -- Only the explicit command loads Edit Mode. ADDON_LOADED can otherwise
+        -- attach the section later without forcing an optional Blizzard addon.
+        pcall(C_AddOns.LoadAddOn, "Blizzard_EditMode")
+    end
     if not self:EnsureRegistered() then
-        if self.lastError then
-            Addon:Print("Could not initialize Blizzard Settings. Use /reload and try /foreverui settings again.")
+        if self.panelCreationFailed then
+            Addon:Print("Could not initialize the Classic UI controls. Use /reload, then Escape > Edit Mode.")
         else
-            Addon:Print("Blizzard Settings is not available yet. Try /foreverui settings after entering the world; /foreverui status shows diagnostics.")
+            Addon:Print("Edit Mode is unavailable on this client or is not ready. Try Escape > Edit Mode after entering the world.")
         end
         return false
     end
-    local ok, failure = pcall(function()
+    local ok, opened = pcall(function()
+        if not self:IsEditModeVisible() then
+            if self.manager:CanEnterEditMode() ~= true or type(ShowUIPanel) ~= "function" then return false end
+            -- Use the same entry point as the native game menu. Never invoke
+            -- EnterEditMode directly or change Blizzard's layout data.
+            ShowUIPanel(self.manager)
+        end
         self:Refresh()
-        Settings.OpenToCategory(self.category:GetID())
+        return self:IsEditModeVisible()
     end)
-    if not ok then
-        self.lastError = tostring(failure)
-        Addon:Print("Could not open Blizzard Settings. Use /reload and try /foreverui settings again.")
+    if not ok then self.lastError = tostring(opened) end
+    if not ok or not opened then
+        Addon:Print("Edit Mode cannot be opened right now. Close other windows and try Escape > Edit Mode.")
         return false
     end
     self.lastError = nil
-    return true
+    return self.layoutFits ~= false
 end
 
-function SettingsPanel:CreatePanel()
+function SettingsPanel:CreatePanel(manager)
     if self.panel then return self.panel end
-    local panel = CreateFrame("Frame", "ForeverReframedSettingsPanel", UIParent)
-    panel:Hide()
-    panel:SetSize(680, 560)
+    local panel = CreateFrame("Frame", "ForeverReframedEditModeControls", manager, "BackdropTemplate")
+    -- The native parent is a ResizeLayoutFrame. Our section must never
+    -- participate in its child bounds, or it would grow the parent repeatedly.
+    panel.ignoreInLayout = true
     self.panel, self.frame = panel, panel
-    self.rows, self.headers = {}, {}
+    panel:Hide()
+    panel:EnableMouse(true)
+    panel:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tile = true, tileSize = 32, edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 },
+    })
+    self.rows = {}
 
-    local title = font(panel, "Classic UI - Forever Reframed", "GameFontNormalLarge")
-    title:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -16)
-    title:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -24, -16)
-    local note = font(panel, "Preview build: window borders only. In-game validation pending.")
-    note:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -48)
-    note:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -24, -48)
-
-    self.masterCheckbox = checkbox(panel, "Enable Classic styling")
-    self.masterCheckbox:SetPoint("TOPLEFT", panel, "TOPLEFT", 10, -76)
-    self.masterCheckbox:SetScript("OnClick", function(button)
-        Addon:GetModule("Restoration"):SetEnabled(button:GetChecked() and true or false)
-        self:Refresh()
-    end)
-    self.summary = font(panel)
-    self.summary:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -112)
-    self.summary:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -24, -112)
-
-    -- ScrollFrameTemplate supplies the client's native scrollbar and wheel
-    -- handling; all settings content remains inside this scroll child.
+    -- Everything scrolls together, including the heading and footer. A small
+    -- viewport can therefore fit beside an expanded native manager without
+    -- covering its Save/Revert buttons or imposing a tall fixed header.
     local scroll = CreateFrame("ScrollFrame", nil, panel, "ScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -148)
-    scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -36, 62)
     local content = CreateFrame("Frame", nil, scroll)
-    content:SetSize(620, 1)
+    content:SetSize(450, 1)
     scroll:SetScrollChild(content)
     self.scroll, self.content = scroll, content
-    self.futureNote = font(content)
-    scroll:SetScript("OnSizeChanged", function() self:Layout() end)
+    scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 10, -10)
+    scroll:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -34, 10)
+    scroll:SetScript("OnSizeChanged", function()
+        if not Addon:IsInCombat() then self:Layout() end
+    end)
 
-    self.resetButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    self.resetButton:SetSize(164, 24)
-    self.resetButton:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 16, 18)
+    self.title = font(content, "Classic UI - Forever Reframed", "GameFontNormal")
+    self.title:SetPoint("TOPLEFT", content, "TOPLEFT", 4, -6)
+    self.resetButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    self.resetButton:SetSize(128, 24)
+    self.resetButton:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, 0)
     self.resetButton:SetText("Reset to defaults")
     self.resetButton:SetScript("OnClick", function()
-        Addon:GetModule("Restoration"):Reset()
+        if self:CanChange() then Addon:GetModule("Restoration"):Reset() end
         self:Refresh()
-    end)
-    self.previewButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    self.previewButton:SetSize(164, 24)
-    self.previewButton:SetPoint("LEFT", self.resetButton, "RIGHT", 12, 0)
-    self.previewButton:SetText("Texture preview")
-    self.previewButton:SetScript("OnClick", function()
-        local preview = Addon:GetModule("Preview")
-        if preview then preview:Toggle() end
     end)
 
-    panel.OnRefresh = function() self:Refresh() end
-    panel.OnDefault = function()
-        Addon:GetModule("Restoration"):Reset()
+    self.masterCheckbox = checkbox(content, "Enable Classic styling")
+    self.masterCheckbox:SetPoint("TOPLEFT", content, "TOPLEFT", -2, -30)
+    self.masterCheckbox:SetScript("OnClick", function(button)
+        if self:CanChange() then
+            Addon:GetModule("Restoration"):SetEnabled(button:GetChecked() and true or false)
+        end
         self:Refresh()
-    end
-    panel:SetScript("OnShow", function() self:Refresh() end)
+    end)
+    self.status = font(content, "Preview build: window borders only. In-game validation pending.")
+    self.status:SetPoint("TOPLEFT", content, "TOPLEFT", 4, -64)
+    self.summary = self.status
+    self.note = font(content, "Saved immediately for all layouts. Edit Mode Save/Revert does not change these choices. Nameplates stay native.")
     return panel
 end
 
@@ -170,13 +200,11 @@ function SettingsPanel:CreateRow(descriptor)
     local row = CreateFrame("Frame", nil, self.content)
     row.checkbox = checkbox(row, descriptor.label)
     row.checkbox:SetPoint("TOPLEFT", row, "TOPLEFT", 0, 0)
-    row.description = font(row, descriptor.description)
     row.status = font(row)
     row.descriptor = descriptor
     row.checkbox:SetScript("OnClick", function(button)
         local engine = Addon:GetModule("Restoration")
-        local supported = engine:IsSupported(row.descriptor.id)
-        if engine:IsEnabled() and supported then
+        if self:CanChange() and engine:IsEnabled() and engine:IsSupported(row.descriptor.id) then
             engine:SetSelection(row.descriptor.id, button:GetChecked() and true or false)
         end
         self:Refresh()
@@ -186,86 +214,98 @@ function SettingsPanel:CreateRow(descriptor)
 end
 
 function SettingsPanel:Layout()
-    if not self.content or self.layingOut then return end
+    if not self.panel or not self.content or self.layingOut then return end
     self.layingOut = true
-    local width = self.scroll:GetWidth()
-    if width <= 0 then width = 620 end
-    self.content:SetWidth(width)
-    local y = 4
-    for _, group in ipairs(groupOrder) do
-        local header = self.headers[group]
-        if header and header.used then
-            header:ClearAllPoints()
-            header:SetPoint("TOPLEFT", self.content, "TOPLEFT", 4, -y)
-            header:SetWidth(math.max(1, width - 12))
-            y = y + textHeight(header) + 12
-            for _, descriptor in ipairs(self.options or {}) do
-                if descriptor.group == group then
-                    local row = self.rows[descriptor.id]
-                    row:ClearAllPoints()
-                    row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -y)
-                    row:SetWidth(width)
-                    row.checkbox.Text:SetWidth(math.max(1, width - 40))
-                    local labelHeight = math.max(28, textHeight(row.checkbox.Text))
-                    row.description:ClearAllPoints()
-                    row.description:SetPoint("TOPLEFT", row, "TOPLEFT", 30, -(labelHeight + 2))
-                    row.description:SetWidth(math.max(1, width - 42))
-                    local descriptionHeight = textHeight(row.description)
-                    row.status:ClearAllPoints()
-                    row.status:SetPoint("TOPLEFT", row, "TOPLEFT", 30, -(labelHeight + descriptionHeight + 8))
-                    row.status:SetWidth(math.max(1, width - 42))
-                    local height = labelHeight + descriptionHeight + textHeight(row.status) + 22
-                    row:SetHeight(height)
-                    y = y + height
-                end
-            end
-            y = y + 12
+    local width = self.manager:GetWidth()
+    if width <= 0 then width = 510 end
+    local contentWidth = math.max(1, width - 48)
+    self.content:SetWidth(contentWidth)
+    self.title:SetWidth(math.max(1, contentWidth - 140))
+    self.status:SetWidth(math.max(1, contentWidth - 8))
+    self.note:SetWidth(math.max(1, contentWidth - 8))
+    self.masterCheckbox.Text:SetWidth(math.max(1, contentWidth - 34))
+    local y = 64 + textHeight(self.status) + 10
+    for _, descriptor in ipairs(self.options or {}) do
+        local row = self.rows[descriptor.id]
+        row:ClearAllPoints()
+        row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -y)
+        row:SetWidth(contentWidth)
+        row.checkbox.Text:SetWidth(math.max(1, contentWidth - 34))
+        local labelHeight = math.max(28, textHeight(row.checkbox.Text))
+        row.status:ClearAllPoints()
+        row.status:SetPoint("TOPLEFT", row, "TOPLEFT", 30, -labelHeight)
+        row.status:SetWidth(math.max(1, contentWidth - 34))
+        local height = labelHeight + textHeight(row.status) + 8
+        row:SetHeight(height)
+        y = y + height
+    end
+    self.note:ClearAllPoints()
+    self.note:SetPoint("TOPLEFT", self.content, "TOPLEFT", 4, -(y + 8))
+    local contentHeight = y + textHeight(self.note) + 16
+    self.content:SetHeight(contentHeight)
+    local desiredHeight = math.min(360, contentHeight + 20)
+    local above, available = false, desiredHeight
+    if type(self.manager.GetBottom) == "function" and type(self.manager.GetTop) == "function"
+        and UIParent and type(UIParent.GetHeight) == "function" then
+        local bottom, top = self.manager:GetBottom(), self.manager:GetTop()
+        local screenHeight = UIParent:GetHeight()
+        if type(self.manager.GetEffectiveScale) == "function" and type(UIParent.GetEffectiveScale) == "function" then
+            local scale = self.manager:GetEffectiveScale()
+            if scale > 0 then screenHeight = screenHeight * UIParent:GetEffectiveScale() / scale end
+        end
+        if bottom and top then
+            local belowSpace, aboveSpace = math.max(0, bottom - 16), math.max(0, screenHeight - top - 16)
+            above = belowSpace < desiredHeight and aboveSpace > belowSpace
+            available = above and aboveSpace or belowSpace
         end
     end
-    self.futureNote:ClearAllPoints()
-    self.futureNote:SetPoint("TOPLEFT", self.content, "TOPLEFT", 4, -y)
-    self.futureNote:SetWidth(math.max(1, width - 16))
-    self.content:SetHeight(y + textHeight(self.futureNote) + 20)
+    -- Never clamp this child back over its native parent: its entire viewport
+    -- fits in the chosen free area, or stays hidden until space is available.
+    local height = math.min(desiredHeight, available)
+    self.layoutFits = height >= 64
+    if not self.layoutFits then
+        self.panel:Hide()
+        self.layingOut = false
+        return false
+    end
+    self.panel:ClearAllPoints()
+    if above then
+        self.panel:SetPoint("BOTTOMLEFT", self.manager, "TOPLEFT", 0, 6)
+        self.panel:SetPoint("BOTTOMRIGHT", self.manager, "TOPRIGHT", 0, 6)
+    else
+        self.panel:SetPoint("TOPLEFT", self.manager, "BOTTOMLEFT", 0, -6)
+        self.panel:SetPoint("TOPRIGHT", self.manager, "BOTTOMRIGHT", 0, -6)
+    end
+    self.panel:SetHeight(height)
     self.layingOut = false
+    return true
 end
 
 function SettingsPanel:Refresh()
     if not self.panel or self.refreshing then return end
     local engine = Addon:GetModule("Restoration")
     if not engine then return end
-    self.refreshing = true
-    local enabled = engine:IsEnabled()
-    self.masterCheckbox:SetChecked(enabled)
-    self.masterCheckbox:SetEnabled(true)
     if Addon:IsInCombat() then
-        self.summary:SetText("Choices are saved now. Changes to game frames wait until combat ends.")
-    elseif enabled then
-        self.summary:SetText("Choose the available modules below. Each status reports what is currently applied.")
-    else
-        self.summary:SetText("Classic styling is disabled by default. Enable it to select available modules.")
+        self.masterCheckbox:SetEnabled(false)
+        self.resetButton:SetEnabled(false)
+        for _, row in pairs(self.rows) do row.checkbox:SetEnabled(false) end
+        self.panel:Hide()
+        return
     end
-    self.previewButton:SetEnabled(not Addon:IsInCombat() and Addon:GetModule("Preview") ~= nil)
-
-    for _, header in pairs(self.headers) do header.used = false; header:Hide() end
+    self.refreshing = true
+    local visible, enabled = self:IsEditModeVisible(), engine:IsEnabled()
+    self.masterCheckbox:SetChecked(enabled)
+    self.masterCheckbox:SetEnabled(visible)
+    self.resetButton:SetEnabled(visible)
     for _, row in pairs(self.rows) do row:Hide() end
     self.options = engine:GetOptions() or {}
-    local implementedGroups = {}
     for _, descriptor in ipairs(self.options) do
-        implementedGroups[descriptor.group] = true
-        local header = self.headers[descriptor.group]
-        if not header then
-            header = font(self.content, descriptor.group, "GameFontNormal")
-            self.headers[descriptor.group] = header
-        end
-        header.used = true
-        header:Show()
         local row = self.rows[descriptor.id] or self:CreateRow(descriptor)
         row.descriptor = descriptor
         row.checkbox.Text:SetText(descriptor.label)
-        row.description:SetText(descriptor.description or "")
         row.checkbox:SetChecked(engine:GetSelection(descriptor.id))
         local supported, unsupportedReason = engine:IsSupported(descriptor.id)
-        row.checkbox:SetEnabled(enabled and supported)
+        row.checkbox:SetEnabled(visible and enabled and supported)
         local state, reason = engine:GetStatus(descriptor.id)
         if not supported and (state == "native" or state == "unsupported") then
             state, reason = "unsupported", unsupportedReason or reason
@@ -285,13 +325,19 @@ function SettingsPanel:Refresh()
         end
         row:Show()
     end
-    local future = {}
-    if not implementedGroups["Unit Frames"] then future[#future + 1] = "Unit frame" end
-    if not implementedGroups.HUD then future[#future + 1] = "HUD" end
-    local note = "Native nameplates are preserved."
-    if #future > 0 then note = note .. " " .. table.concat(future, " and ") .. " modules are not implemented yet." end
-    if #self.options == 0 then note = "No styling modules are available in this build. " .. note end
-    self.futureNote:SetText(note)
     self:Layout()
+    if visible and self.layoutFits then
+        self.spaceWarningShown = nil
+        self.panel:Show()
+    else
+        self.panel:Hide()
+        self.masterCheckbox:SetEnabled(false)
+        self.resetButton:SetEnabled(false)
+        for _, row in pairs(self.rows) do row.checkbox:SetEnabled(false) end
+        if visible and not self.spaceWarningShown then
+            self.spaceWarningShown = true
+            Addon:Print("Classic UI controls need more screen space. Move or collapse the Edit Mode window to show them.")
+        end
+    end
     self.refreshing = false
 end

@@ -40,7 +40,7 @@ def main():
         overrides = {
             'Interface': str(target_interface),
             'Title': 'Classic UI - Forever Reframed - Beta Workshop',
-            'Notes': 'Classic UI settings and experimental window borders. In-game validation pending.',
+            'Notes': 'Classic UI options in Edit Mode and experimental window borders. In-game validation pending.',
         }
         packaged_toc = '\n'.join(
             f'## {key}: {overrides[key]}' if key in overrides else line

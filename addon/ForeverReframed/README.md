@@ -4,32 +4,40 @@
 except nameplates.** This includes unit frames, action bars, minimap, talents,
 quests, world and flight maps, character panels, bags, banks, professions, mail,
 auctions, social panels and shared controls. Each area is intended to have its
-own choice in native Settings. Nameplates retain Forever's appearance and behavior.
+own choice in native Edit Mode. Nameplates retain Forever's appearance and behavior.
 
-An original prototype, version **0.2.2-dev**. The source TOC targets
+An original prototype, version **0.2.3-dev**. The source TOC targets
 **Classic Era 1.15.9 / Interface 11509**. A separate package targets the inspected
 **Forever beta 1.60.1.69893** with candidate Interface **16001**, inferred from the
 client version and pending confirmation by in-game `GetBuildInfo()`.
 
 Earlier Era tests confirmed addon loading, sample rendering and report
-persistence. The new settings panel and window-border modules have only been
+persistence. The Edit Mode integration and window-border modules have only been
 prepared and tested offline. Forever runtime behavior remains unvalidated while
 beta access is unavailable.
 
 The implemented styling currently covers only the three partial window borders
 listed below. Full Classic windows, unit frames and the remaining HUD are still
-planned work. Version `0.2.2-dev` uses **`/foreverui`** as its only addon command.
-It introduces the distinct `ForeverReframed` folder and namespace, with fresh
-`ForeverReframedDB` settings. Older development settings and reports are left
+planned work. **`/foreverui`** is the addon command. Version `0.2.2-dev` introduced
+the distinct `ForeverReframed` folder and namespace. Version `0.2.3-dev` keeps
+those `ForeverReframedDB` settings. Older development settings and reports are left
 untouched and are not imported. Disable this project's previous development copy
 before enabling the renamed addon.
 
-## Settings and experimental borders
+## Edit Mode options and experimental borders
 
-Open `/foreverui` or `/foreverui settings` outside combat to access the addon panel in the
-game's native Settings. The master switch and all module checkboxes default to
-off. The panel includes module status messages, **Reset to defaults** and
-**Texture preview**. Selections persist in `ForeverReframedDB.settings`.
+Outside combat, choose **Escape → Edit Mode**, or use `/foreverui` or
+`/foreverui edit`. A compact **Classic UI** section is attached directly to the
+native Edit Mode window and follows its visibility and movement. The older
+`/foreverui settings` subcommand is an alias for the same location; there is no
+separate Settings category.
+
+The master switch and all module checkboxes default to off. The section includes
+module status messages and a reset action. Choices update immediately in
+`ForeverReframedDB.settings` and are shared across all Edit Mode layouts. Native
+**Save** and **Revert** do not undo addon choices. Use the Classic UI checkboxes
+or reset action to change them; the game writes SavedVariables to disk on reload
+or logout. The texture preview remains available through `/foreverui preview`.
 
 | Module ID | Native window |
 | --- | --- |
@@ -57,9 +65,14 @@ With the beta closed, extract the resulting archive's `ForeverReframed` folder
 into `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`, then
 start the beta and enable the addon once beta access is available.
 
-Open `/foreverui` and confirm the default-off state. Open a quest interaction, talents,
-the spellbook and the map before running `/foreverui inspect`. Enable the master switch
-and test one window checkbox at a time, including turning it off again. Then use
+Open `/foreverui` and confirm the attached Classic UI section and default-off
+state on a fresh installation. Close Edit Mode, then open a quest interaction,
+talents, the spellbook and the map before running `/foreverui inspect`. Return
+to Edit Mode to enable the master switch and one window checkbox at a time.
+Close Edit Mode to inspect each border, then turn that module off and verify
+its native appearance returns. Check that closing/reopening Edit Mode and
+switching layouts keep the addon choices, and that native Save/Revert does not
+change them. Then use
 **Reset to defaults** and, while out of combat, run `/foreverui preview`, `/foreverui hide`,
 `/foreverui inspect` and `/reload`. The reload writes settings and the report locally;
 keep raw SavedVariables out of public reports. The repository's
@@ -73,7 +86,8 @@ borders use the required local texture.
 
 ## Commands
 
-- `/foreverui` or `/foreverui settings`: open the native Settings addon panel outside combat.
+- `/foreverui` or `/foreverui edit`: open native Edit Mode with Classic UI options outside combat.
+- `/foreverui settings`: compatibility alias for the same Edit Mode options.
 - `/foreverui status`: summarize client and UI capabilities; hold the report in memory.
 - `/foreverui inspect`: include frame presence/protection and restoration states.
 - `/foreverui preview`: toggle native portrait, action button, quest log and talent
@@ -84,7 +98,7 @@ borders use the required local texture.
 Drag the preview to move it; press Escape to close it. It closes when combat
 starts and does not reopen automatically. It cannot be opened during combat.
 The preview itself does not modify native game interface elements. Window
-styling is controlled separately through the settings panel and starts disabled.
+styling is controlled through the Edit Mode options and starts disabled.
 
 `ForeverReframedDB.lastReport` contains only the client version, build number,
 build date, interface number, project, locale, presence of selected APIs and
@@ -94,7 +108,8 @@ that load on demand may appear absent until their window has been opened.
 
 This version probes 25 named frames, including `PlayerSpellsFrame`,
 `QuestMapFrame`, `SettingsPanel` and `FocusFrame`, and reports native Settings
-registration API presence and restoration states. The earlier Era result of
+registration API presence, Edit Mode control registration and restoration states.
+The earlier Era result of
 19/21 belongs to version `0.1.0-dev`; probe counts are not restoration progress.
 
 ## Extension points
@@ -136,10 +151,11 @@ From the project root:
 tools/python-env/bin/python tests/run.py
 ```
 
-The 27 tests use Lua 5.1 through Lupa with substitutes for the game's APIs. They
-exercise diagnostics, saved choices, module application/reversion, settings
-registration and deferred changes. Earlier Era rendering and report disk writes
-were confirmed separately. The new settings panel, border rendering, reload
+All 37 addon behavioral tests pass under Lua 5.1 through Lupa, using substitutes
+for the game's APIs. They cover diagnostics, saved choices, module
+application/reversion, Edit Mode integration and deferred changes.
+Earlier Era rendering and report disk writes
+were confirmed separately. The Edit Mode options, border rendering, reload
 persistence, interactions, taint and combat behavior still require beta testing;
 passing mock tests does not validate those behaviors in the game.
 
