@@ -65,6 +65,16 @@ function Diagnostics:Collect()
         mediaSource = Addon:GetModule("Media").source,
     }
     for _, name in ipairs(self.frameNames) do report.frames[name] = inspectFrame(name) end
+    local restoration = Addon:GetModule("Restoration")
+    if restoration then
+        report.restoration = { enabled = restoration:IsEnabled(), modules = {} }
+        for _, option in ipairs(restoration:GetOptions()) do
+            local state, reason = restoration:GetStatus(option.id)
+            report.restoration.modules[option.id] = {
+                selected = restoration:GetSelection(option.id), state = state, reason = reason,
+            }
+        end
+    end
     return report
 end
 
@@ -98,6 +108,16 @@ function Diagnostics:Run(verbose)
         tostring(report.api.Settings_RegisterCanvasLayoutCategory),
         tostring(report.api.Settings_RegisterAddOnCategory),
         tostring(report.api.Settings_OpenToCategory)))
+    if report.restoration then
+        Addon:Print("Classic styling: " .. (report.restoration.enabled and "enabled" or "disabled")
+            .. ". Open /fcui settings to choose window borders.")
+        if verbose then
+            for _, option in ipairs(Addon:GetModule("Restoration"):GetOptions()) do
+                local module = report.restoration.modules[option.id]
+                Addon:Print(option.label .. ": " .. module.state)
+            end
+        end
+    end
     Addon:Print("Report held in memory. Use /reload or log out to save it in ForeverClassicUIDB.")
     Addon:Print("An absent frame may load on demand. Forever compatibility is unverified.")
     return report

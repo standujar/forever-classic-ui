@@ -1,0 +1,2 @@
+# Classic window border artwork required by WindowSkins.lua.
+interface/dialogframe/ui-dialogbox-border.blp

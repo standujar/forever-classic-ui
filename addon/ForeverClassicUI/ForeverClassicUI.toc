@@ -1,13 +1,16 @@
 ## Interface: 11509
 ## Title: Forever Classic UI - Era Workshop
-## Notes: Classic Era diagnostics and visual references. Forever compatibility is unverified.
+## Notes: Classic UI settings, diagnostics and experimental Forever window borders. In-game validation pending.
 ## Author: Forever Classic UI project
-## Version: 0.1.1-dev
+## Version: 0.2.0-dev
 ## X-License: MIT
 ## SavedVariables: ForeverClassicUIDB
 ## OptionalDeps: ClassicFrames
 
 Core.lua
+Restoration.lua
 Media.lua
 Diagnostics.lua
 Preview.lua
+WindowSkins.lua
+Settings.lua

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Package only original addon code, optionally with locally extracted preview art."""
+"""Package original addon code, required Classic artwork and optional preview art."""
 import argparse
 import hashlib
 import json
@@ -40,7 +40,7 @@ def main():
         overrides = {
             'Interface': str(target_interface),
             'Title': 'Forever Classic UI - Beta Workshop',
-            'Notes': 'Forever beta diagnostics and visual references. Compatibility validation is pending.',
+            'Notes': 'Classic UI settings and experimental window borders. In-game validation pending.',
         }
         packaged_toc = '\n'.join(
             f'## {key}: {overrides[key]}' if key in overrides else line
@@ -59,18 +59,28 @@ def main():
         if not path.is_relative_to(ADDON.resolve()) or not path.is_file():
             raise SystemExit(f'Invalid or missing TOC entry: {entry}')
         files.append((path, f'{ADDON.name}/{entry}'))
+    media_paths = set()
+    required_media = ADDON / 'RequiredMedia.txt'
+    if required_media.is_file():
+        files.append((required_media, f'{ADDON.name}/RequiredMedia.txt'))
+        media_paths.update(line.strip() for line in required_media.read_text().splitlines()
+                           if line.strip() and not line.strip().startswith('#'))
+    required_media_count = len(media_paths)
     if args.with_preview_media:
         media_text = (ADDON / 'Media.lua').read_text()
         paths = re.findall(r'native\s*=\s*"([^"\n]+)"', media_text)
         if not paths:
             raise SystemExit('No sample paths found in Media.lua.')
-        for native in paths:
-            relative = native.replace('\\\\', '/').lower() + '.blp'
-            sources = [ROOT / 'assets' / name / relative for name in ('classic-era', 'era')]
-            source = next((path for path in sources if path.is_file()), None)
-            if source is None:
-                raise SystemExit(f'Preview texture was not extracted: {relative}')
-            files.append((source, f'{ADDON.name}/Media/{relative}'))
+        media_paths.update(native.replace('\\\\', '/').lower() + '.blp' for native in paths)
+    for relative in sorted(media_paths):
+        path = Path(relative)
+        if path.is_absolute() or '..' in path.parts or path.parts[0] != 'interface' or path.suffix != '.blp':
+            raise SystemExit(f'Invalid artwork path: {relative}')
+        sources = [ROOT / 'assets' / name / relative for name in ('classic-era', 'era')]
+        source = next((path for path in sources if path.is_file()), None)
+        if source is None:
+            raise SystemExit(f'Required texture was not extracted: {relative}')
+        files.append((source, f'{ADDON.name}/Media/{relative}'))
     target_suffix = '-forever-beta' if args.target == 'forever-beta' else ''
     media_suffix = '-local-preview' if args.with_preview_media else ''
     dest = ROOT / 'dist' / f'ForeverClassicUI-{version}{target_suffix}{media_suffix}.zip'
@@ -87,7 +97,9 @@ def main():
         members = bundle.namelist()
     manifest = {'archive': dest.name, 'sha256': hashlib.sha256(dest.read_bytes()).hexdigest(),
                 'size': dest.stat().st_size, 'files': members,
-                'includes_extracted_blizzard_art': args.with_preview_media,
+                'includes_extracted_blizzard_art': bool(media_paths),
+                'required_media_files': required_media_count,
+                'bundled_media_files': len(media_paths),
                 'includes_classicframes_code': False, 'in_game_validated': False,
                 'addon_version': version, 'addon_version_basis': 'source-addon-toc',
                 'target': args.target, 'target_client_version': target_client_version,

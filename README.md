@@ -6,10 +6,13 @@ minimap, talents, quests, world and flight maps, character panels, spellbooks,
 bags, banks, professions, mail, auctions, social panels and other windows and
 controls. Nameplates remain as provided by the Forever client.
 
-**Early development:** the current prototype provides client diagnostics and a
-texture preview. It does not yet replace native frames, and Forever compatibility
-has not been validated in game. The source TOC targets **Classic Era 1.15.9**;
-a separate diagnostic package targets the inspected **Forever beta 1.60.1.69893**.
+**Early development:** version **0.2.0-dev** adds an integrated settings panel and
+three experimental window-border modules, alongside diagnostics and a texture
+preview. Everything starts disabled. These are partial borders, not restored
+Classic windows; unit-frame and HUD restoration is not implemented. The source
+TOC targets **Classic Era 1.15.9**; the experimental modules require **Forever beta
+1.60.1.69893 / candidate Interface 16001**. All new behavior remains unvalidated
+in game while beta access is unavailable.
 
 ![Classic Era texture reference sheet](docs/images/classic-era-contact-sheet.png)
 
@@ -18,13 +21,16 @@ reference sheet, not a screenshot of a completed in-game interface.*
 
 ## What's included
 
-- An original modular Lua addon with `/fcui status`, `/fcui inspect`,
-  `/fcui preview` and `/fcui hide`.
+- An original modular Lua addon with `/fcui` settings, per-module selections,
+  client diagnostics and a texture preview.
+- Experimental side and bottom borders for quest interactions, the combined
+  talents/spellbook window and the world map. The native top decoration, portrait,
+  title, buttons, dimensions, content layout and gameplay remain unchanged.
 - **8,827 unchanged BLP textures (162.2 MiB)** in
   [assets/classic-era](assets/classic-era), with provenance and SHA-256 hashes.
 - Local, read-only CASC extraction tools for obtaining interface resources from
   an installed client.
-- Eight behavioral tests running under Lua 5.1 through Lupa.
+- 27 behavioral tests running under Lua 5.1 through Lupa.
 - A [Classic Frames compatibility audit](docs/classicframes-audit.md).
 - An [in-game restoration checklist](docs/ui-coverage.md), distinguishing
   extracted artwork, diagnostic coverage and functional replacement work.
@@ -36,8 +42,9 @@ and is not relicensed under MIT. See [NOTICE.md](NOTICE.md).
 
 ### Classic Era
 
-1. Close Classic Era.
-2. Copy `addon/ForeverClassicUI` into that client's `Interface/AddOns` directory.
+1. Run `python3 tools/package_addon.py --target era` and close Classic Era.
+2. Extract the archive's `ForeverClassicUI` folder into that client's
+   `Interface/AddOns` directory. Packaging includes the required artwork.
 3. Start the game and enable **Forever Classic UI** in the addon list.
 4. Run `/fcui status`, then `/fcui preview` while out of combat.
 
@@ -46,7 +53,8 @@ On macOS, the usual destination is
 
 ### Forever beta
 
-Build the separate beta archive:
+Build the separate beta archive. The following in-game steps are for when beta
+access becomes available:
 
 ```sh
 python3 tools/package_addon.py --target forever-beta
@@ -54,26 +62,42 @@ python3 tools/package_addon.py --target forever-beta
 
 1. Close the beta client.
 2. Extract the `ForeverClassicUI` folder from
-   `dist/ForeverClassicUI-0.1.1-dev-forever-beta.zip` into
+   `dist/ForeverClassicUI-0.2.0-dev-forever-beta.zip` into
    `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`.
 3. Start the beta and enable **Forever Classic UI** in the addon list.
-4. Open talents, the spellbook and the map so their UI modules can load, then run
-   `/fcui inspect` while out of combat.
-5. Run `/fcui preview`, close it with `/fcui hide`, then run `/reload` to save the
-   diagnostic report locally.
+4. Open `/fcui` outside combat. Confirm that the master switch and all module
+   checkboxes start off. Open quest interactions, talents/spellbook and the map
+   using the game's normal controls, then run `/fcui inspect` for a baseline.
+5. Enable the master switch and one available window module at a time. Check its
+   border and native controls, then uncheck it to verify the original appearance
+   returns. The combined talents/spellbook window has one checkbox.
+6. Run `/fcui preview`, close it with `/fcui hide`, and use **Reset to defaults**
+   to turn restoration off. Run `/fcui inspect` and `/reload` to save the final
+   report and settings locally.
 
 This package uses candidate Interface `16001`, inferred from client version
 `1.60.1`; the in-game `GetBuildInfo()` result must confirm it. Source inspection
 identified `PlayerSpellsFrame` for Camelot talents and spellbook, the map frames
 and native Settings registration functions. These findings do not establish
-in-game compatibility. See [the beta validation log](docs/validation-forever.md).
+in-game compatibility. Modules require the exact version, build and candidate
+Interface value, plus the expected unprotected frame structure. Unsupported
+windows keep their native appearance. See [the beta validation log](docs/validation-forever.md).
+
+The native Settings panel has a master switch, individual window checkboxes,
+status messages, **Reset to defaults** and **Texture preview**. Selections persist
+in `ForeverClassicUIDB.settings`. Disabling a module restores the border texture
+alphas captured when it was enabled. Changes wait until combat ends; windows
+loaded or reopened later are handled by the restoration engine. These mechanisms
+have offline tests, but their actual rendering, interactions and combat behavior
+still need beta validation. Nameplates have no restoration option.
 
 ### Commands and reports
 
 | Command | Behavior |
 | --- | --- |
+| `/fcui` or `/fcui settings` | Opens the addon panel in native game Settings outside combat |
 | `/fcui status` | Reports client build and UI capabilities |
-| `/fcui inspect` | Includes named-frame availability and protection information |
+| `/fcui inspect` | Includes frame availability/protection, Settings capabilities and restoration states |
 | `/fcui preview` | Toggles texture samples for unit frames, buttons, quests and talents |
 | `/fcui hide` | Closes the preview; Escape also works |
 
@@ -83,10 +107,10 @@ report is stored in `ForeverClassicUIDB.lastReport`; the game saves it on reload
 or logout. It contains no character, account or combat data. Load-on-demand
 windows may appear absent until opened.
 
-Version `0.1.1-dev` samples 25 named frames and reports native Settings API
-presence. The historical Era result of 19/21 came from version `0.1.0-dev`, which
-had 21 probes. These are diagnostic samples, not counts of all Classic frames or
-measurements of how much of the UI is restored.
+Version `0.2.0-dev` samples 25 named frames and reports native Settings API
+presence and restoration states. The historical Era result of 19/21 came from
+version `0.1.0-dev`, which had 21 probes. These are diagnostic samples, not counts
+of all Classic frames or measurements of how much of the UI is restored.
 
 The [first in-game smoke test](docs/validation-era.md) confirmed that the addon
 loads, its native texture samples render and the diagnostic report persists on
@@ -105,11 +129,11 @@ python3 tools/package_addon.py
 ```
 
 Archives are written to `dist/`. The default target is `era`; select
-`--target forever-beta` for the separate beta package. Add `--with-preview-media`
-to include the eight texture samples from the checked-in art pack or your local
-extraction.
-Both targets use native textures by default; the media module also supports
-explicit local paths for future client ports.
+`--target forever-beta` for the separate beta package. Both include the one local
+Classic dialog-border BLP listed in `RequiredMedia.txt`. Add
+`--with-preview-media` to bundle the eight reference samples as well, for nine
+BLPs total. The texture preview still uses native resources by default; the
+window-border modules use their required bundled texture.
 
 To generate a quick reference sheet:
 
@@ -157,10 +181,10 @@ not a port.
 - Track all in-game UI families except nameplates in the
   [restoration checklist](docs/ui-coverage.md).
 - Inspect the actual Forever client, build and UI APIs before final adaptation.
-- Add a setup panel in the game's native options with a checkbox for each
-  restoration module. Unchecked modules retain Forever's appearance; nameplates
-  always remain native and have no restoration option. This panel is planned,
-  not yet implemented.
+- Validate the prepared native Settings panel and three experimental border
+  modules in the beta, including enabling, disabling, reloads and combat.
+- Extend the setup panel as additional restoration modules are implemented.
+  Unchecked modules retain Forever's appearance; nameplates always remain native.
 - Restore window artwork and layout in isolated, reversible modules.
 - Cover talents, quests, character panels, spellbooks, bags, bank, world map and
   flight map windows.

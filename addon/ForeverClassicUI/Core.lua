@@ -2,7 +2,7 @@
 local addonName, Addon = ...
 
 Addon.name = addonName
-Addon.version = "0.1.1-dev"
+Addon.version = "0.2.0-dev"
 Addon.modules = {}
 Addon.moduleOrder = {}
 
@@ -43,20 +43,25 @@ function Addon:Initialize()
         local module = self.modules[name]
         if module.Initialize then module:Initialize() end
     end
+    local restoration = self:GetModule("Restoration")
+    if restoration then restoration:Reconcile() end
 end
 
 function Addon:HandleCommand(input)
     if not self.initialized then self:Initialize() end
     local command = string.lower(string.match(input or "", "^%s*(%S*)") or "")
-    if command == "status" or command == "inspect" then
+    if command == "" or command == "settings" then
+        local settings = self:GetModule("Settings")
+        if settings then settings:Open() end
+    elseif command == "status" or command == "inspect" then
         self:GetModule("Diagnostics"):Run(command == "inspect")
     elseif command == "preview" then
         self:GetModule("Preview"):Toggle()
     elseif command == "hide" then
         self:GetModule("Preview"):Hide()
     else
-        self:Print("/fcui status: report; /fcui inspect: details; /fcui preview: references; /fcui hide: close.")
-        self:Print("Classic UI diagnostic workshop. Forever compatibility is unverified.")
+        self:Print("/fcui settings: options; /fcui status: report; /fcui inspect: details; /fcui preview: references; /fcui hide: close.")
+        self:Print("Preview build. Native Forever nameplates are preserved. In-game validation pending.")
     end
 end
 
@@ -66,12 +71,23 @@ SlashCmdList.FOREVERCLASSICUI = function(input) Addon:HandleCommand(input) end
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_REGEN_DISABLED")
+events:RegisterEvent("PLAYER_REGEN_ENABLED")
+events:RegisterEvent("PLAYER_LOGIN")
 events:SetScript("OnEvent", function(_, event, loadedAddon)
     if event == "ADDON_LOADED" and loadedAddon == addonName then
         Addon:Initialize()
-        events:UnregisterEvent("ADDON_LOADED")
+        return
     elseif event == "PLAYER_REGEN_DISABLED" then
         local preview = Addon:GetModule("Preview")
         if preview then preview:Hide() end
+        local settings = Addon:GetModule("Settings")
+        if settings and settings.Refresh then settings:Refresh() end
+    end
+    if Addon.initialized and (event == "ADDON_LOADED" or event == "PLAYER_LOGIN"
+        or event == "PLAYER_REGEN_ENABLED") then
+        local settings = Addon:GetModule("Settings")
+        if settings and settings.EnsureRegistered then settings:EnsureRegistered() end
+        local restoration = Addon:GetModule("Restoration")
+        if restoration then restoration:Reconcile() end
     end
 end)

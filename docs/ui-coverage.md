@@ -14,22 +14,48 @@ final adaptations are chosen.
   and 292 TOC files available through the known file-name list.
 - The repository's expanded reference pack contains 8,827 unchanged textures
   (170,042,504 bytes). It adds 938 textures for previously omitted UI families.
-- Prototype `0.1.1-dev` samples 25 named globals and previews eight textures.
+- Prototype `0.2.0-dev` samples 25 named globals and previews eight textures.
   Diagnostics include new probes for `PlayerSpellsFrame`, `QuestMapFrame`, `SettingsPanel`
-  and `FocusFrame`, plus native Settings API presence flags.
+  and `FocusFrame`, plus native Settings API presence flags and restoration states.
 - The saved Era report from version `0.1.0-dev` detects 19 of its 21 probed globals.
   These are diagnostic samples, not a count of all Classic frames or a completion
   percentage.
-- No functional replacement module has been completed. Talent-window detection,
-  sample rendering and report persistence have been tested on Era; see
+- No complete Classic window, unit frame or HUD replacement has been completed.
+  The new experimental modules change only side and bottom window borders.
+  Earlier talent-window detection, sample rendering and report persistence were
+  tested on Era; see
   [the validation log](validation-era.md).
-- The first Forever beta diagnostic package is prepared for the local
+- A Forever beta development package is prepared for the local
   `_classic_beta_` client. Camelot sources identify `PlayerSpellsFrame` for talents
   and spellbook, `QuestMapFrame`/`WorldMapFrame` for maps and native Settings
   registration functions. [Beta runtime validation](validation-forever.md) is
   still pending.
-- The integrated setup panel described below is planned and is not included in
-  the current prototype.
+- The integrated native Settings panel and three default-off window modules are
+  implemented for offline testing. Their beta rendering and behavior remain
+  unvalidated while access is unavailable.
+
+## Current partial implementation
+
+The panel opens with `/fcui` or `/fcui settings` and provides a master switch,
+individual module checkboxes, status messages, reset and texture preview. Settings
+persist in `ForeverClassicUIDB.settings`; the master switch and all selections
+default to off.
+
+| Module | Current change |
+| --- | --- |
+| `quest_window` | Classic side and bottom borders on the quest interaction window |
+| `player_spells_window` | The same border treatment for the combined talents/spellbook window |
+| `world_map_window` | The same border treatment for the world map |
+
+These modules preserve the native top decoration, portrait, title, buttons,
+dimensions, content layout and gameplay. They require version `1.60.1`, build
+`69893`, candidate Interface `16001` and the inspected unprotected frame shape;
+they reject protected or forbidden frames. Changes are deferred in combat,
+disabling restores captured border alphas, and late-loaded/reopened windows are
+handled. Actual beta behavior is pending validation. The required dialog-border
+BLP is packaged by default.
+
+This partial artwork change leaves every full restoration item below unchecked.
 
 A frame is a runtime UI object with layout, children and behavior. Texture files,
 XML definitions, Lua-created frames and runtime instances have different counts.
@@ -82,18 +108,18 @@ so changes to unit frames and windows do not inadvertently restyle nameplates.
 
 ## Integrated setup panel
 
-Provide a settings panel integrated into the target client's native game options,
-using the same panel styling and controls. Verify the integration points on the
-actual Forever client before implementation. All labels and help text are English.
+The first panel implementation uses the target client's native Settings canvas
+category and controls. All labels and help text are English. Source inspection
+identified these integration points; registration, appearance and interaction in
+the actual beta are still unvalidated.
 
 - Let players choose Classic styling independently for each implemented module.
   Checked modules use Classic styling; unchecked modules retain native Forever
   styling and behavior.
-- Group checkboxes into **Unit Frames**, **Windows** and **HUD**. Unit-frame
-  choices include player, target, pet, party and raid. Window choices include
-  talents, quests, character, spellbook, maps, bags, bank, mail and professions,
-  with further choices following the restoration checklist. HUD choices cover
-  the other in-scope elements such as action bars and the minimap.
+- Display the **Windows** group with the three implemented border modules.
+  Talents and spellbook share one checkbox because they share `PlayerSpellsFrame`.
+  Future **Unit Frames** and **HUD** groups and additional window choices will
+  follow implemented modules. No selectable unit-frame or HUD skin exists yet.
 - Keep nameplates native, with no nameplate-restoration checkbox. Explain that
   boundary once in the panel rather than presenting it as a missing feature.
 - Include an overall enable switch, save the player's selections across reloads
@@ -103,10 +129,11 @@ actual Forever client before implementation. All labels and help text are Englis
   not imply that an unchecked roadmap item already has a functional skin.
 - Turning a module off restores its native presentation. Apply supported changes
   without a reload where possible; clearly indicate any required reload. Defer
-  changes to protected frames while the player is in combat.
+  all changes to game frames while the player is in combat.
 
-Build this panel as part of the first functional restoration milestone so that
-each subsequent unit-frame, window or HUD module is individually configurable.
+Validate this panel with the initial borders, then add individual choices as
+subsequent unit-frame, window or HUD modules are implemented. The full checklist
+is a roadmap, not a list of controls already available in settings.
 
 ## Native source evidence
 
