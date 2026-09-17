@@ -1,7 +1,10 @@
 # Classic UI - Forever Reframed
 
 [CurseForge project](https://www.curseforge.com/wow/addons/classic-ui-forever-reframed/preview)
-— project ID `1699904`; initial alpha submission is awaiting completion and moderation.
+— project ID `1699904`. The `0.2.2-dev` beta-client package was submitted as a
+**Release** on September 17, 2026. The project and file are awaiting CurseForge
+moderation and are not yet publicly available. See the
+[submission and validation status](docs/validation-forever.md#curseforge-submission).
 
 **Project goal: restore the entire Classic Era in-game interface in World of
 Warcraft: Forever, except nameplates.** This open-source project covers unit
@@ -23,15 +26,24 @@ TOC targets **Classic Era 1.15.9**; the experimental modules require **Forever b
 1.60.1.69893 / candidate Interface 16001**. All new behavior remains unvalidated
 in game while beta access is unavailable.
 
+The CurseForge Release channel describes the uploaded file's distribution
+category; the implementation remains experimental with the limitations above.
+
 Open the addon with **`/foreverui`**. Version `0.2.2-dev` introduces the
 **Classic UI - Forever Reframed** name and a distinct `ForeverReframed` addon
 folder and namespace. It starts with fresh `ForeverReframedDB` settings; older
 development settings and reports are left untouched and are not imported.
 
-![Classic Era texture reference sheet](docs/images/classic-era-contact-sheet.png)
+![Classic Era artwork reference — restoration targets](docs/images/classic-era-contact-sheet.png)
 
-*Extracted texture samples, including talents and quest panels. This is a
-reference sheet, not a screenshot of a completed in-game interface.*
+*Original Classic Era texture samples for unit frames, quests, talents, bars,
+minimap and windows. Visual references only; not an in-game screenshot or
+completed restoration. Artwork © Blizzard Entertainment.*
+
+A historical [in-game texture-preview capture](docs/images/classic-era-ingame-prototype.png)
+shows the `0.1` prototype on Classic Era `1.15.9`, before the addon was renamed.
+That preview leaves the native interface unchanged and does not show the current
+beta modules.
 
 ## What's included
 

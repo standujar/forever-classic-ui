@@ -10,6 +10,48 @@ Both client targets were rebuilt with and without optional preview artwork.
 The user cannot enter the beta yet. Source inspection and offline tests are
 available; no in-game beta rendering or behavior is confirmed.
 
+## CurseForge submission
+
+The initial submission was completed on September 17, 2026:
+
+- Project: **Classic UI - Forever Reframed**, ID `1699904`, under author `k4rno`.
+- Slug: `classic-ui-forever-reframed`.
+- [Project preview](https://www.curseforge.com/wow/addons/classic-ui-forever-reframed/preview).
+- Linked source: [standujar/forever-classic-ui](https://github.com/standujar/forever-classic-ui).
+- Uploaded archive: `ForeverReframed-0.2.2-dev-forever-beta.zip`, file ID `8904620`.
+- Display name: **Classic UI - Forever Reframed 0.2.2-dev**.
+- Game version: `1.60.1`; distribution channel: **Release**.
+- Observed status: project **New**, file **Under Review**. Moderator approval is
+  pending; the project and download are not yet publicly available.
+
+The [author file dashboard](https://authors.curseforge.com/#/projects/1699904/files)
+requires the project's author account. The Release channel does not change the
+experimental feature scope or establish beta runtime compatibility.
+
+The submitted source revision is `e8e5817`.
+[GitHub Actions run 35242087809](https://github.com/standujar/forever-classic-ui/actions/runs/35242087809)
+passed, including all 28 Lua 5.1 behavioral tests. These are offline checks;
+the beta runtime validation below remains outstanding.
+
+### Gallery references
+
+Both gallery images were uploaded and saved on September 17, 2026. **Classic Era
+artwork reference — restoration targets** is the first image and the selected
+feature media. This primary repository visual shows original texture samples
+for unit frames, quests, talents, bars, minimap and windows. The
+[reference sheet](images/classic-era-contact-sheet.png) is a collection of
+artwork, not an in-game screenshot or completed restoration. Its caption credits
+Blizzard Entertainment.
+
+The second gallery image, **In-game texture preview — Classic Era prototype**,
+is an unmodified user screenshot from the `0.1` prototype on Classic
+Era `1.15.9`, before the addon was renamed. The preview displays artwork samples
+and leaves the native interface unchanged. The image is also available in
+[the repository](images/classic-era-ingame-prototype.png).
+
+Neither image demonstrates the current beta border modules or a completed
+interface restoration.
+
 ## Confirmed from the installed client
 
 - Product: `wow_classic_beta`.
