@@ -14,7 +14,7 @@ final adaptations are chosen.
   and 292 TOC files available through the known file-name list.
 - The repository's expanded reference pack contains 8,827 unchanged textures
   (170,042,504 bytes). It adds 938 textures for previously omitted UI families.
-- Prototype `0.2.0-dev` samples 25 named globals and previews eight textures.
+- Prototype `0.2.1-dev` samples 25 named globals and previews eight textures.
   Diagnostics include new probes for `PlayerSpellsFrame`, `QuestMapFrame`, `SettingsPanel`
   and `FocusFrame`, plus native Settings API presence flags and restoration states.
 - The saved Era report from version `0.1.0-dev` detects 19 of its 21 probed globals.
@@ -36,7 +36,7 @@ final adaptations are chosen.
 
 ## Current partial implementation
 
-The panel opens with `/fcui` or `/fcui settings` and provides a master switch,
+The panel opens with `/foreverui` or `/foreverui settings` and provides a master switch,
 individual module checkboxes, status messages, reset and texture preview. Settings
 persist in `ForeverClassicUIDB.settings`; the master switch and all selections
 default to off.

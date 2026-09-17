@@ -2,7 +2,7 @@
 ## Title: Forever Classic UI - Era Workshop
 ## Notes: Classic UI settings, diagnostics and experimental Forever window borders. In-game validation pending.
 ## Author: Forever Classic UI project
-## Version: 0.2.0-dev
+## Version: 0.2.1-dev
 ## X-License: MIT
 ## SavedVariables: ForeverClassicUIDB
 ## OptionalDeps: ClassicFrames

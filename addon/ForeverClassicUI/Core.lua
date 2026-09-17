@@ -2,7 +2,7 @@
 local addonName, Addon = ...
 
 Addon.name = addonName
-Addon.version = "0.2.0-dev"
+Addon.version = "0.2.1-dev"
 Addon.modules = {}
 Addon.moduleOrder = {}
 
@@ -60,12 +60,12 @@ function Addon:HandleCommand(input)
     elseif command == "hide" then
         self:GetModule("Preview"):Hide()
     else
-        self:Print("/fcui settings: options; /fcui status: report; /fcui inspect: details; /fcui preview: references; /fcui hide: close.")
+        self:Print("/foreverui settings: options; /foreverui status: report; /foreverui inspect: details; /foreverui preview: references; /foreverui hide: close.")
         self:Print("Preview build. Native Forever nameplates are preserved. In-game validation pending.")
     end
 end
 
-SLASH_FOREVERCLASSICUI1 = "/fcui"
+SLASH_FOREVERCLASSICUI1 = "/foreverui"
 SlashCmdList.FOREVERCLASSICUI = function(input) Addon:HandleCommand(input) end
 
 local events = CreateFrame("Frame")

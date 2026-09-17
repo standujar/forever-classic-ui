@@ -2,6 +2,9 @@
 
 Date: September 17, 2026. Addon: `0.1.0-dev`.
 
+The commands below describe the historical test. Current versions use
+`/foreverui`; the earlier command was removed in `0.2.1-dev`.
+
 Client: Classic Era `1.15.9`, build `69722`, Interface `11509`, project ID `2`,
 locale `enUS`. Evidence consists of user-provided in-game screenshots and the
 addon's subsequently saved `ForeverClassicUIDB.lastReport`.

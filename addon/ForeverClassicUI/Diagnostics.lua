@@ -110,7 +110,7 @@ function Diagnostics:Run(verbose)
         tostring(report.api.Settings_OpenToCategory)))
     if report.restoration then
         Addon:Print("Classic styling: " .. (report.restoration.enabled and "enabled" or "disabled")
-            .. ". Open /fcui settings to choose window borders.")
+            .. ". Open /foreverui settings to choose window borders.")
         if verbose then
             for _, option in ipairs(Addon:GetModule("Restoration"):GetOptions()) do
                 local module = report.restoration.modules[option.id]

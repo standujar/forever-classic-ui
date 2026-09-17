@@ -79,14 +79,14 @@ end
 
 function SettingsPanel:Open()
     if Addon:IsInCombat() then
-        Addon:Print("Open settings outside combat. Use /fcui status to inspect the current state.")
+        Addon:Print("Open settings outside combat. Use /foreverui status to inspect the current state.")
         return false
     end
     if not self:EnsureRegistered() then
         if self.lastError then
-            Addon:Print("Could not initialize Blizzard Settings. Use /reload and try /fcui settings again.")
+            Addon:Print("Could not initialize Blizzard Settings. Use /reload and try /foreverui settings again.")
         else
-            Addon:Print("Blizzard Settings is not available yet. Try /fcui settings after entering the world; /fcui status shows diagnostics.")
+            Addon:Print("Blizzard Settings is not available yet. Try /foreverui settings after entering the world; /foreverui status shows diagnostics.")
         end
         return false
     end
@@ -96,7 +96,7 @@ function SettingsPanel:Open()
     end)
     if not ok then
         self.lastError = tostring(failure)
-        Addon:Print("Could not open Blizzard Settings. Use /reload and try /fcui settings again.")
+        Addon:Print("Could not open Blizzard Settings. Use /reload and try /foreverui settings again.")
         return false
     end
     self.lastError = nil

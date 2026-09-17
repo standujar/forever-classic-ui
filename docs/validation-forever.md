@@ -1,6 +1,6 @@
 # Forever beta validation status
 
-Date: September 17, 2026. Current development addon: `0.2.0-dev`.
+Date: September 17, 2026. Current development addon: `0.2.1-dev`.
 
 The user cannot enter the beta yet. Source inspection and offline tests are
 available; no in-game beta rendering or behavior is confirmed.
@@ -52,7 +52,7 @@ session for runtime version reporting, modern-window detection and read-only
 Settings capability detection. Those results apply to that diagnostic version;
 they are not beta runtime validation or a test count for the new version.
 
-The current package is `ForeverClassicUI-0.2.0-dev-forever-beta.zip`. It includes
+The current package is `ForeverClassicUI-0.2.1-dev-forever-beta.zip`. It includes
 the one local dialog-border BLP listed in `RequiredMedia.txt`.
 `--with-preview-media` adds eight reference samples, for nine BLPs total. Preview
 lookup remains native by default; experimental window borders use the required
@@ -65,9 +65,16 @@ Both Era and beta packages were checked with and without optional preview media
 (one or nine BLPs), and packaging left the source TOC unchanged. These are
 installation checks, not in-game results.
 
-## Implemented offline in 0.2.0-dev
+The subsequent `0.2.1-dev` package is now installed in the same beta directory,
+with all 13 files verified against its ZIP and the previous version backed up.
+All four Era/beta packaging variants were rebuilt and checked for the new version
+and `/foreverui` command. No old command alias is registered in this version.
 
-- Native Settings canvas registration, opened with `/fcui` or `/fcui settings`.
+## Implemented offline in 0.2.0-dev; command updated in 0.2.1-dev
+
+- Native Settings canvas registration, opened with `/foreverui` or
+  `/foreverui settings` from version `0.2.1-dev`. The previous command has been
+  removed; settings and saved reports are preserved.
 - A master switch, per-module checkboxes, status messages, reset and texture
   preview. `ForeverClassicUIDB.settings` persists choices; all start disabled.
 - Three experimental modules: `quest_window`, `player_spells_window` and
@@ -93,11 +100,11 @@ the relevant APIs; no beta runtime result follows from those passes.
 
 1. Start the beta and enable **Forever Classic UI - Beta Workshop** in AddOns.
    Restart the client if it was already running when the addon was installed.
-2. Outside combat, open `/fcui`. Confirm the native Settings category, the
+2. Outside combat, open `/foreverui`. Confirm the native Settings category, the
    default-off master switch and three unchecked window modules.
 3. Open a quest interaction, talents, the spellbook and the world map using the
    game's normal controls. Talents may require an eligible character. Run
-   `/fcui inspect` and check the actual build, Interface, frame probes and states.
+   `/foreverui inspect` and check the actual build, Interface, frame probes and states.
 4. Enable the master switch and one window module at a time. Verify the side and
    bottom border, intact top decoration, working buttons and unchanged content.
    Test both talents and spellbook under their shared checkbox, then close and
@@ -105,9 +112,9 @@ the relevant APIs; no beta runtime result follows from those passes.
 5. Select one module and run `/reload`. Verify the choice persists and handles a
    window that has not loaded yet. Check changes deferred during combat and their
    application afterward; record any taint or blocked-action errors.
-6. Run `/fcui preview` and check the texture samples, then `/fcui hide`. Use
+6. Run `/foreverui preview` and check the texture samples, then `/foreverui hide`. Use
    **Reset to defaults** and confirm the native presentation returns. Run
-   `/fcui inspect` and `/reload` to save the final report and reset choices.
+   `/foreverui inspect` and `/reload` to save the final report and reset choices.
 
 If the addon cannot load due to an interface-version mismatch, run
 `/dump select(4, GetBuildInfo())` in the beta so the package metadata can be

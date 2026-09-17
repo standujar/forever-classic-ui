@@ -1,6 +1,12 @@
 # Forever Classic UI — Development workshop
 
-An original prototype, version **0.2.0-dev**. The source TOC targets
+**Project goal: restore the entire Classic Era in-game interface in Forever,
+except nameplates.** This includes unit frames, action bars, minimap, talents,
+quests, world and flight maps, character panels, bags, banks, professions, mail,
+auctions, social panels and shared controls. Each area is intended to have its
+own choice in native Settings. Nameplates retain Forever's appearance and behavior.
+
+An original prototype, version **0.2.1-dev**. The source TOC targets
 **Classic Era 1.15.9 / Interface 11509**. A separate package targets the inspected
 **Forever beta 1.60.1.69893** with candidate Interface **16001**, inferred from the
 client version and pending confirmation by in-game `GetBuildInfo()`.
@@ -10,9 +16,14 @@ persistence. The new settings panel and window-border modules have only been
 prepared and tested offline. Forever runtime behavior remains unvalidated while
 beta access is unavailable.
 
+The implemented styling currently covers only the three partial window borders
+listed below. Full Classic windows, unit frames and the remaining HUD are still
+planned work. Version `0.2.1-dev` uses **`/foreverui`** as its only addon command;
+existing saved settings and reports carry over.
+
 ## Settings and experimental borders
 
-Open `/fcui` or `/fcui settings` outside combat to access the addon panel in the
+Open `/foreverui` or `/foreverui settings` outside combat to access the addon panel in the
 game's native Settings. The master switch and all module checkboxes default to
 off. The panel includes module status messages, **Reset to defaults** and
 **Texture preview**. Selections persist in `ForeverClassicUIDB.settings`.
@@ -43,11 +54,11 @@ With the beta closed, extract the resulting archive's `ForeverClassicUI` folder
 into `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`, then
 start the beta and enable the addon once beta access is available.
 
-Open `/fcui` and confirm the default-off state. Open a quest interaction, talents,
-the spellbook and the map before running `/fcui inspect`. Enable the master switch
+Open `/foreverui` and confirm the default-off state. Open a quest interaction, talents,
+the spellbook and the map before running `/foreverui inspect`. Enable the master switch
 and test one window checkbox at a time, including turning it off again. Then use
-**Reset to defaults** and, while out of combat, run `/fcui preview`, `/fcui hide`,
-`/fcui inspect` and `/reload`. The reload writes settings and the report locally;
+**Reset to defaults** and, while out of combat, run `/foreverui preview`, `/foreverui hide`,
+`/foreverui inspect` and `/reload`. The reload writes settings and the report locally;
 keep raw SavedVariables out of public reports. The repository's
 `docs/validation-forever.md` tracks the outstanding checks.
 
@@ -59,12 +70,12 @@ borders use the required local texture.
 
 ## Commands
 
-- `/fcui` or `/fcui settings`: open the native Settings addon panel outside combat.
-- `/fcui status`: summarize client and UI capabilities; hold the report in memory.
-- `/fcui inspect`: include frame presence/protection and restoration states.
-- `/fcui preview`: toggle native portrait, action button, quest log and talent
+- `/foreverui` or `/foreverui settings`: open the native Settings addon panel outside combat.
+- `/foreverui status`: summarize client and UI capabilities; hold the report in memory.
+- `/foreverui inspect`: include frame presence/protection and restoration states.
+- `/foreverui preview`: toggle native portrait, action button, quest log and talent
   texture samples. These samples are not functional unit frames or talent trees.
-- `/fcui hide`: close the preview.
+- `/foreverui hide`: close the preview.
 - `/reload`: use the game's command to write SavedVariables to disk.
 
 Drag the preview to move it; press Escape to close it. It closes when combat

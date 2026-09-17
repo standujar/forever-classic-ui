@@ -1,18 +1,27 @@
 # Forever Classic UI
 
-An open-source addon project to bring **the entire Classic Era in-game interface,
-except nameplates, to World of Warcraft: Forever**: unit frames, action bars,
+**Project goal: restore the entire Classic Era in-game interface in World of
+Warcraft: Forever, except nameplates.** This open-source project covers unit
+frames, action bars,
 minimap, talents, quests, world and flight maps, character panels, spellbooks,
 bags, banks, professions, mail, auctions, social panels and other windows and
 controls. Nameplates remain as provided by the Forever client.
 
-**Early development:** version **0.2.0-dev** adds an integrated settings panel and
-three experimental window-border modules, alongside diagnostics and a texture
+Each part of the interface is intended to be selectable in the game's native
+Settings panel, so players can choose where to use Classic styling and where to
+keep Forever's presentation.
+
+**Current implementation — early development:** version **0.2.1-dev** includes an
+integrated settings panel and three experimental window-border modules, alongside
+diagnostics and a texture
 preview. Everything starts disabled. These are partial borders, not restored
 Classic windows; unit-frame and HUD restoration is not implemented. The source
 TOC targets **Classic Era 1.15.9**; the experimental modules require **Forever beta
 1.60.1.69893 / candidate Interface 16001**. All new behavior remains unvalidated
 in game while beta access is unavailable.
+
+The command is now **`/foreverui`**. Version `0.2.1-dev` removes the previous
+command while preserving existing settings and diagnostic reports.
 
 ![Classic Era texture reference sheet](docs/images/classic-era-contact-sheet.png)
 
@@ -21,7 +30,7 @@ reference sheet, not a screenshot of a completed in-game interface.*
 
 ## What's included
 
-- An original modular Lua addon with `/fcui` settings, per-module selections,
+- An original modular Lua addon with `/foreverui` settings, per-module selections,
   client diagnostics and a texture preview.
 - Experimental side and bottom borders for quest interactions, the combined
   talents/spellbook window and the world map. The native top decoration, portrait,
@@ -38,6 +47,25 @@ reference sheet, not a screenshot of a completed in-game interface.*
 The original code is **MIT licensed**. Blizzard artwork is separately attributed
 and is not relicensed under MIT. See [NOTICE.md](NOTICE.md).
 
+## Restoration roadmap
+
+The full-interface goal includes all of the following work. Complete restoration
+of these areas is still pending:
+
+- **Unit frames:** player, target, target of target, pet, party and raid frames,
+  with their health/resource bars, cast bars, buffs and debuffs.
+- **Windows and maps:** talents, spellbooks, quests, character panels, bags,
+  bank, professions, vendors, mail, auctions, social panels, world and flight maps.
+- **HUD and shared controls:** action bars, stance/pet bars, minimap, micro menu,
+  XP/reputation bars, tooltips, chat, menus, dialogs, tabs and other in-game controls.
+
+Work starts with validating the setup panel and the three partial window-border
+modules in the beta, then building unit-frame styling and complete Classic
+window layouts, followed by the remaining HUD and shared controls. Available
+modules will be added to the same settings panel as they are implemented.
+Nameplates remain native throughout. The [full checklist](docs/ui-coverage.md)
+tracks the scope and distinguishes finished work from planned restoration.
+
 ## Try the development addon
 
 ### Classic Era
@@ -46,7 +74,7 @@ and is not relicensed under MIT. See [NOTICE.md](NOTICE.md).
 2. Extract the archive's `ForeverClassicUI` folder into that client's
    `Interface/AddOns` directory. Packaging includes the required artwork.
 3. Start the game and enable **Forever Classic UI** in the addon list.
-4. Run `/fcui status`, then `/fcui preview` while out of combat.
+4. Run `/foreverui status`, then `/foreverui preview` while out of combat.
 
 On macOS, the usual destination is
 `/Applications/World of Warcraft/_classic_era_/Interface/AddOns/ForeverClassicUI`.
@@ -62,17 +90,17 @@ python3 tools/package_addon.py --target forever-beta
 
 1. Close the beta client.
 2. Extract the `ForeverClassicUI` folder from
-   `dist/ForeverClassicUI-0.2.0-dev-forever-beta.zip` into
+   `dist/ForeverClassicUI-0.2.1-dev-forever-beta.zip` into
    `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`.
 3. Start the beta and enable **Forever Classic UI** in the addon list.
-4. Open `/fcui` outside combat. Confirm that the master switch and all module
+4. Open `/foreverui` outside combat. Confirm that the master switch and all module
    checkboxes start off. Open quest interactions, talents/spellbook and the map
-   using the game's normal controls, then run `/fcui inspect` for a baseline.
+   using the game's normal controls, then run `/foreverui inspect` for a baseline.
 5. Enable the master switch and one available window module at a time. Check its
    border and native controls, then uncheck it to verify the original appearance
    returns. The combined talents/spellbook window has one checkbox.
-6. Run `/fcui preview`, close it with `/fcui hide`, and use **Reset to defaults**
-   to turn restoration off. Run `/fcui inspect` and `/reload` to save the final
+6. Run `/foreverui preview`, close it with `/foreverui hide`, and use **Reset to defaults**
+   to turn restoration off. Run `/foreverui inspect` and `/reload` to save the final
    report and settings locally.
 
 This package uses candidate Interface `16001`, inferred from client version
@@ -95,11 +123,11 @@ still need beta validation. Nameplates have no restoration option.
 
 | Command | Behavior |
 | --- | --- |
-| `/fcui` or `/fcui settings` | Opens the addon panel in native game Settings outside combat |
-| `/fcui status` | Reports client build and UI capabilities |
-| `/fcui inspect` | Includes frame availability/protection, Settings capabilities and restoration states |
-| `/fcui preview` | Toggles texture samples for unit frames, buttons, quests and talents |
-| `/fcui hide` | Closes the preview; Escape also works |
+| `/foreverui` or `/foreverui settings` | Opens the addon panel in native game Settings outside combat |
+| `/foreverui status` | Reports client build and UI capabilities |
+| `/foreverui inspect` | Includes frame availability/protection, Settings capabilities and restoration states |
+| `/foreverui preview` | Toggles texture samples for unit frames, buttons, quests and talents |
+| `/foreverui hide` | Closes the preview; Escape also works |
 
 The preview closes when combat starts and cannot be opened during combat. It
 does not modify native frames or display a functional talent tree. The diagnostic
@@ -107,7 +135,7 @@ report is stored in `ForeverClassicUIDB.lastReport`; the game saves it on reload
 or logout. It contains no character, account or combat data. Load-on-demand
 windows may appear absent until opened.
 
-Version `0.2.0-dev` samples 25 named frames and reports native Settings API
+Version `0.2.1-dev` samples 25 named frames and reports native Settings API
 presence and restoration states. The historical Era result of 19/21 came from
 version `0.1.0-dev`, which had 21 probes. These are diagnostic samples, not counts
 of all Classic frames or measurements of how much of the UI is restored.

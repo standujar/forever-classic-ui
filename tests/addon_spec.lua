@@ -527,8 +527,15 @@ local function withSettings(env, state)
     }
 end
 
-test("Settings registers once and both slash commands open its native category", function()
+test("Settings registers once and the sole foreverui command opens its native category", function()
     local state = harness(nil, withSettings)
+    equal(state.env.SLASH_FOREVERCLASSICUI1, "/foreverui")
+    equal(state.env.SLASH_FOREVERCLASSICUI2, nil)
+    for name, value in pairs(state.env) do
+        if name:match("^SLASH_") then
+            assert(value ~= "/fcui", "The retired command must not remain registered")
+        end
+    end
     local settings = state.addon:GetModule("Settings")
     equal(state.settingsCalls.canvas, 1)
     equal(state.settingsCalls.category, 1)
