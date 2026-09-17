@@ -1,0 +1,31 @@
+name: Addon checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: tools/requirements.txt
+      - name: Install test and preview dependencies
+        run: python -m pip install -r tools/requirements.txt
+      - name: Test original addon with Lua 5.1
+        run: python tests/run.py
+      - name: Verify selected artwork hashes
+        run: python tools/verify_assets.py
+      - name: Decode preview samples
+        run: python tools/preview_assets.py
+      - name: Build development archives
+        run: |
+          python tools/package_addon.py
+          python tools/package_addon.py --with-preview-media

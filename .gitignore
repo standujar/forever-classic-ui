@@ -1,0 +1,13 @@
+# Full local extraction and third-party source references.
+# The selected, attributed frame artwork in assets/classic-era is tracked.
+assets/era/
+manifests/
+references/
+.tools/
+tools/python-env/
+dist/
+previews/
+__pycache__/
+*.pyc
+.DS_Store
+addon/ForeverClassicUI/Media/

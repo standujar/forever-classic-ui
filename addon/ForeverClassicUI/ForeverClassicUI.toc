@@ -1,0 +1,13 @@
+## Interface: 11509
+## Title: Forever Classic UI - Era Workshop
+## Notes: Classic Era diagnostics and visual references. Forever compatibility is unverified.
+## Author: Forever Classic UI project
+## Version: 0.1.0-dev
+## X-License: MIT
+## SavedVariables: ForeverClassicUIDB
+## OptionalDeps: ClassicFrames
+
+Core.lua
+Media.lua
+Diagnostics.lua
+Preview.lua
