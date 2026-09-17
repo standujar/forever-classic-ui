@@ -1,8 +1,14 @@
-name: Addon checks
+name: Addon checks and CurseForge release
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the current main version (confirm it is not already on CurseForge)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -10,8 +16,17 @@ permissions:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      publish: ${{ steps.release.outputs.publish }}
+      archive: ${{ steps.release.outputs.archive }}
+      metadata: ${{ steps.release.outputs.metadata }}
+      artifact-id: ${{ steps.builds.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
@@ -21,6 +36,8 @@ jobs:
         run: python -m pip install -r tools/requirements.txt
       - name: Test original addon with Lua 5.1
         run: python tests/run.py
+      - name: Test release validation and upload handling
+        run: python -m unittest discover -s tests -p 'test_*.py'
       - name: Verify selected artwork hashes
         run: python tools/verify_assets.py
       - name: Decode preview samples
@@ -30,3 +47,65 @@ jobs:
           python tools/package_addon.py
           python tools/package_addon.py --with-preview-media
           python tools/package_addon.py --target forever-beta
+      - name: Validate the release package and detect a new version
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [[ "$EVENT_NAME" == "push" && "$REF_NAME" == "refs/heads/main" ]]; then
+            python tools/curseforge_release.py prepare --base-ref "$BEFORE_SHA"
+          else
+            python tools/curseforge_release.py prepare
+          fi
+      - name: Save downloadable builds
+        id: builds
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: addon-builds-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dist/*.zip
+            dist/*.json
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish Release to CurseForge
+    needs: checks
+    if: >-
+      github.repository == 'standujar/forever-classic-ui' &&
+      github.ref == 'refs/heads/main' &&
+      ((github.event_name == 'push' && needs.checks.outputs.publish == 'true') ||
+       (github.event_name == 'workflow_dispatch' && inputs.publish))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: curseforge-1699904
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Download the exact checked archives
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          artifact-ids: ${{ needs.checks.outputs.artifact-id }}
+          path: dist
+      - name: Upload the Forever package as Release
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          RELEASE_ARCHIVE: ${{ needs.checks.outputs.archive }}
+          RELEASE_METADATA: ${{ needs.checks.outputs.metadata }}
+        run: python tools/curseforge_release.py upload --archive "$RELEASE_ARCHIVE" --metadata "$RELEASE_METADATA"
+      - name: Save the CurseForge upload receipt
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: curseforge-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist/curseforge-upload.json
+          if-no-files-found: ignore
+          retention-days: 90

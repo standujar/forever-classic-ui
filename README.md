@@ -168,12 +168,18 @@ still require client testing. The automated tests use a simulated WoW environmen
 
 ## Development
 
+Every PR runs automated checks and produces downloadable addon ZIPs. A new
+version merged into `main` is uploaded to CurseForge as a **Release** after the
+checks pass, once the `CF_API_TOKEN` repository secret is configured. See the
+[CI and release guide](docs/releasing.md) for setup, versioning and retry steps.
+
 Python 3.11 or newer:
 
 ```sh
 python3 -m venv tools/python-env
 tools/python-env/bin/python -m pip install -r tools/requirements.txt
 tools/python-env/bin/python tests/run.py
+tools/python-env/bin/python -m unittest discover -s tests -p 'test_*.py'
 python3 tools/package_addon.py
 ```
 

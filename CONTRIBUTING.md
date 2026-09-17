@@ -1,5 +1,9 @@
 # Contributing
 
+Pull requests run automated checks and produce test archives. To publish an
+update after merging into `main`, follow the [release guide](docs/releasing.md):
+bump both version declarations and add matching English release notes.
+
 The goal is a tested, modular Classic-style in-game interface for the actual
 Forever client, with native Forever nameplates retained. Inspect that client's
 build, frame hierarchies and available APIs before final adaptation. The current
@@ -22,6 +26,7 @@ Use Python 3.11 or newer:
 python3 -m venv tools/python-env
 tools/python-env/bin/python -m pip install -r tools/requirements.txt
 tools/python-env/bin/python tests/run.py
+tools/python-env/bin/python -m unittest discover -s tests -p 'test_*.py'
 python3 tools/package_addon.py
 ```
 
