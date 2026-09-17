@@ -4,7 +4,7 @@ The goal is a tested, modular Classic-style in-game interface for the actual
 Forever client, with native Forever nameplates retained. Inspect that client's
 build, frame hierarchies and available APIs before final adaptation. The current
 development addon provides diagnostics for Classic Era 1.15.9 and a separate
-Forever beta 1.60.1.69893 package. Version `0.2.1-dev` prepares native Settings
+Forever beta 1.60.1.69893 package. Version `0.2.2-dev` prepares native Settings
 integration and three optional window-border modules; no complete Classic window,
 unit frame or HUD replacement is implemented. Beta source inspection and pending
 runtime checks are recorded in [the validation log](docs/validation-forever.md).
@@ -40,7 +40,7 @@ alone. For an in-game report, include the client build, reproduction steps and
 Lua error, without account or character information.
 
 Restoration descriptors must provide a support check, apply and revert methods;
-see [the addon extension points](addon/ForeverClassicUI/README.md#extension-points).
+see [the addon extension points](addon/ForeverReframed/README.md#extension-points).
 Keep new modules disabled by default and preserve the user's native presentation
 when they are disabled. The initial border modules require exact version
 `1.60.1`, build `69893`, candidate Interface `16001` and the inspected frame

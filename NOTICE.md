@@ -1,6 +1,6 @@
 # Content and licenses
 
-The MIT license in `LICENSE` applies to original Forever Classic UI code,
+The MIT license in `LICENSE` applies to original Classic UI - Forever Reframed code,
 tests, extraction tools and project documentation.
 
 ## Blizzard interface artwork

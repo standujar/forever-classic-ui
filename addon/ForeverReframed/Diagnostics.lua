@@ -118,7 +118,7 @@ function Diagnostics:Run(verbose)
             end
         end
     end
-    Addon:Print("Report held in memory. Use /reload or log out to save it in ForeverClassicUIDB.")
+    Addon:Print("Report held in memory. Use /reload or log out to save it in ForeverReframedDB.")
     Addon:Print("An absent frame may load on demand. Forever compatibility is unverified.")
     return report
 end

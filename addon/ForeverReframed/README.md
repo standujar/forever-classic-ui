@@ -1,4 +1,4 @@
-# Forever Classic UI — Development workshop
+# Classic UI - Forever Reframed — Development workshop
 
 **Project goal: restore the entire Classic Era in-game interface in Forever,
 except nameplates.** This includes unit frames, action bars, minimap, talents,
@@ -6,7 +6,7 @@ quests, world and flight maps, character panels, bags, banks, professions, mail,
 auctions, social panels and shared controls. Each area is intended to have its
 own choice in native Settings. Nameplates retain Forever's appearance and behavior.
 
-An original prototype, version **0.2.1-dev**. The source TOC targets
+An original prototype, version **0.2.2-dev**. The source TOC targets
 **Classic Era 1.15.9 / Interface 11509**. A separate package targets the inspected
 **Forever beta 1.60.1.69893** with candidate Interface **16001**, inferred from the
 client version and pending confirmation by in-game `GetBuildInfo()`.
@@ -18,15 +18,18 @@ beta access is unavailable.
 
 The implemented styling currently covers only the three partial window borders
 listed below. Full Classic windows, unit frames and the remaining HUD are still
-planned work. Version `0.2.1-dev` uses **`/foreverui`** as its only addon command;
-existing saved settings and reports carry over.
+planned work. Version `0.2.2-dev` uses **`/foreverui`** as its only addon command.
+It introduces the distinct `ForeverReframed` folder and namespace, with fresh
+`ForeverReframedDB` settings. Older development settings and reports are left
+untouched and are not imported. Disable this project's previous development copy
+before enabling the renamed addon.
 
 ## Settings and experimental borders
 
 Open `/foreverui` or `/foreverui settings` outside combat to access the addon panel in the
 game's native Settings. The master switch and all module checkboxes default to
 off. The panel includes module status messages, **Reset to defaults** and
-**Texture preview**. Selections persist in `ForeverClassicUIDB.settings`.
+**Texture preview**. Selections persist in `ForeverReframedDB.settings`.
 
 | Module ID | Native window |
 | --- | --- |
@@ -50,7 +53,7 @@ beta testing.
 ## Beta installation and first test
 
 From the repository root, run `python3 tools/package_addon.py --target forever-beta`.
-With the beta closed, extract the resulting archive's `ForeverClassicUI` folder
+With the beta closed, extract the resulting archive's `ForeverReframed` folder
 into `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`, then
 start the beta and enable the addon once beta access is available.
 
@@ -83,7 +86,7 @@ starts and does not reopen automatically. It cannot be opened during combat.
 The preview itself does not modify native game interface elements. Window
 styling is controlled separately through the settings panel and starts disabled.
 
-`ForeverClassicUIDB.lastReport` contains only the client version, build number,
+`ForeverReframedDB.lastReport` contains only the client version, build number,
 build date, interface number, project, locale, presence of selected APIs and
 protection status of named UI frames, plus settings/restoration status. It
 collects no character names, realms, account identifiers or combat data. Frames

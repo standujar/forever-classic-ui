@@ -2,7 +2,7 @@
 local addonName, Addon = ...
 
 Addon.name = addonName
-Addon.version = "0.2.1-dev"
+Addon.version = "0.2.2-dev"
 Addon.modules = {}
 Addon.moduleOrder = {}
 
@@ -24,7 +24,7 @@ function Addon:IsInCombat()
 end
 
 function Addon:Print(message)
-    local line = "|cffd4b16aForever Classic UI|r: " .. message
+    local line = "|cffd4b16aClassic UI - Forever Reframed|r: " .. message
     if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
         DEFAULT_CHAT_FRAME:AddMessage(line)
     else
@@ -34,10 +34,10 @@ end
 
 function Addon:Initialize()
     if self.initialized then return end
-    if type(ForeverClassicUIDB) ~= "table" or ForeverClassicUIDB.schemaVersion ~= 1 then
-        ForeverClassicUIDB = { schemaVersion = 1 }
+    if type(ForeverReframedDB) ~= "table" or ForeverReframedDB.schemaVersion ~= 1 then
+        ForeverReframedDB = { schemaVersion = 1 }
     end
-    self.db = ForeverClassicUIDB
+    self.db = ForeverReframedDB
     self.initialized = true
     for _, name in ipairs(self.moduleOrder) do
         local module = self.modules[name]
@@ -65,8 +65,8 @@ function Addon:HandleCommand(input)
     end
 end
 
-SLASH_FOREVERCLASSICUI1 = "/foreverui"
-SlashCmdList.FOREVERCLASSICUI = function(input) Addon:HandleCommand(input) end
+SLASH_FOREVERREFRAMED1 = "/foreverui"
+SlashCmdList.FOREVERREFRAMED = function(input) Addon:HandleCommand(input) end
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")

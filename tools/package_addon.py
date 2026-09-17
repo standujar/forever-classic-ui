@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ADDON = ROOT / 'addon' / 'ForeverClassicUI'
+ADDON = ROOT / 'addon' / 'ForeverReframed'
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     parser.add_argument('--with-preview-media', action='store_true',
                         help='Include only Media.lua sample textures from the local Era extraction.')
     args = parser.parse_args()
-    toc = ADDON / 'ForeverClassicUI.toc'
+    toc = ADDON / 'ForeverReframed.toc'
     toc_text = toc.read_text()
     metadata = dict(line[2:].strip().split(':', 1)
                     for line in toc_text.splitlines()
@@ -39,7 +39,7 @@ def main():
         interface_basis = 'candidate derived from installed client version; in-game GetBuildInfo not verified'
         overrides = {
             'Interface': str(target_interface),
-            'Title': 'Forever Classic UI - Beta Workshop',
+            'Title': 'Classic UI - Forever Reframed - Beta Workshop',
             'Notes': 'Classic UI settings and experimental window borders. In-game validation pending.',
         }
         packaged_toc = '\n'.join(
@@ -83,7 +83,7 @@ def main():
         files.append((source, f'{ADDON.name}/Media/{relative}'))
     target_suffix = '-forever-beta' if args.target == 'forever-beta' else ''
     media_suffix = '-local-preview' if args.with_preview_media else ''
-    dest = ROOT / 'dist' / f'ForeverClassicUI-{version}{target_suffix}{media_suffix}.zip'
+    dest = ROOT / 'dist' / f'ForeverReframed-{version}{target_suffix}{media_suffix}.zip'
     dest.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(dest, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
         for source, name in files:

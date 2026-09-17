@@ -1,4 +1,7 @@
-# Forever Classic UI
+# Classic UI - Forever Reframed
+
+[CurseForge project](https://www.curseforge.com/wow/addons/classic-ui-forever-reframed/preview)
+— project ID `1699904`; initial alpha submission is awaiting completion and moderation.
 
 **Project goal: restore the entire Classic Era in-game interface in World of
 Warcraft: Forever, except nameplates.** This open-source project covers unit
@@ -11,7 +14,7 @@ Each part of the interface is intended to be selectable in the game's native
 Settings panel, so players can choose where to use Classic styling and where to
 keep Forever's presentation.
 
-**Current implementation — early development:** version **0.2.1-dev** includes an
+**Current implementation — early development:** version **0.2.2-dev** includes an
 integrated settings panel and three experimental window-border modules, alongside
 diagnostics and a texture
 preview. Everything starts disabled. These are partial borders, not restored
@@ -20,8 +23,10 @@ TOC targets **Classic Era 1.15.9**; the experimental modules require **Forever b
 1.60.1.69893 / candidate Interface 16001**. All new behavior remains unvalidated
 in game while beta access is unavailable.
 
-The command is now **`/foreverui`**. Version `0.2.1-dev` removes the previous
-command while preserving existing settings and diagnostic reports.
+Open the addon with **`/foreverui`**. Version `0.2.2-dev` introduces the
+**Classic UI - Forever Reframed** name and a distinct `ForeverReframed` addon
+folder and namespace. It starts with fresh `ForeverReframedDB` settings; older
+development settings and reports are left untouched and are not imported.
 
 ![Classic Era texture reference sheet](docs/images/classic-era-contact-sheet.png)
 
@@ -39,7 +44,7 @@ reference sheet, not a screenshot of a completed in-game interface.*
   [assets/classic-era](assets/classic-era), with provenance and SHA-256 hashes.
 - Local, read-only CASC extraction tools for obtaining interface resources from
   an installed client.
-- 27 behavioral tests running under Lua 5.1 through Lupa.
+- 28 behavioral tests running under Lua 5.1 through Lupa.
 - A [Classic Frames compatibility audit](docs/classicframes-audit.md).
 - An [in-game restoration checklist](docs/ui-coverage.md), distinguishing
   extracted artwork, diagnostic coverage and functional replacement work.
@@ -68,16 +73,20 @@ tracks the scope and distinguishes finished work from planned restoration.
 
 ## Try the development addon
 
+When updating from this project's development versions before `0.2.2-dev`,
+disable the previous development copy before enabling the renamed addon. The
+new package uses the `ForeverReframed` directory and its own saved settings.
+
 ### Classic Era
 
 1. Run `python3 tools/package_addon.py --target era` and close Classic Era.
-2. Extract the archive's `ForeverClassicUI` folder into that client's
+2. Extract the archive's `ForeverReframed` folder into that client's
    `Interface/AddOns` directory. Packaging includes the required artwork.
-3. Start the game and enable **Forever Classic UI** in the addon list.
+3. Start the game and enable **Classic UI - Forever Reframed** in the addon list.
 4. Run `/foreverui status`, then `/foreverui preview` while out of combat.
 
 On macOS, the usual destination is
-`/Applications/World of Warcraft/_classic_era_/Interface/AddOns/ForeverClassicUI`.
+`/Applications/World of Warcraft/_classic_era_/Interface/AddOns/ForeverReframed`.
 
 ### Forever beta
 
@@ -89,10 +98,10 @@ python3 tools/package_addon.py --target forever-beta
 ```
 
 1. Close the beta client.
-2. Extract the `ForeverClassicUI` folder from
-   `dist/ForeverClassicUI-0.2.1-dev-forever-beta.zip` into
+2. Extract the `ForeverReframed` folder from
+   `dist/ForeverReframed-0.2.2-dev-forever-beta.zip` into
    `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`.
-3. Start the beta and enable **Forever Classic UI** in the addon list.
+3. Start the beta and enable **Classic UI - Forever Reframed** in the addon list.
 4. Open `/foreverui` outside combat. Confirm that the master switch and all module
    checkboxes start off. Open quest interactions, talents/spellbook and the map
    using the game's normal controls, then run `/foreverui inspect` for a baseline.
@@ -113,7 +122,7 @@ windows keep their native appearance. See [the beta validation log](docs/validat
 
 The native Settings panel has a master switch, individual window checkboxes,
 status messages, **Reset to defaults** and **Texture preview**. Selections persist
-in `ForeverClassicUIDB.settings`. Disabling a module restores the border texture
+in `ForeverReframedDB.settings`. Disabling a module restores the border texture
 alphas captured when it was enabled. Changes wait until combat ends; windows
 loaded or reopened later are handled by the restoration engine. These mechanisms
 have offline tests, but their actual rendering, interactions and combat behavior
@@ -131,11 +140,11 @@ still need beta validation. Nameplates have no restoration option.
 
 The preview closes when combat starts and cannot be opened during combat. It
 does not modify native frames or display a functional talent tree. The diagnostic
-report is stored in `ForeverClassicUIDB.lastReport`; the game saves it on reload
+report is stored in `ForeverReframedDB.lastReport`; the game saves it on reload
 or logout. It contains no character, account or combat data. Load-on-demand
 windows may appear absent until opened.
 
-Version `0.2.1-dev` samples 25 named frames and reports native Settings API
+Version `0.2.2-dev` samples 25 named frames and reports native Settings API
 presence and restoration states. The historical Era result of 19/21 came from
 version `0.1.0-dev`, which had 21 probes. These are diagnostic samples, not counts
 of all Classic frames or measurements of how much of the UI is restored.

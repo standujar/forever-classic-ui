@@ -51,7 +51,7 @@ function SettingsPanel:EnsureRegistered()
         local panel = self:CreatePanel()
         stage = "category"
         if not self.category then
-            local category = Settings.RegisterCanvasLayoutCategory(panel, "Forever Classic UI")
+            local category = Settings.RegisterCanvasLayoutCategory(panel, "Classic UI - Forever Reframed")
             assert(category and type(category.GetID) == "function", "Settings category unavailable")
             self.category = category
         end
@@ -105,13 +105,13 @@ end
 
 function SettingsPanel:CreatePanel()
     if self.panel then return self.panel end
-    local panel = CreateFrame("Frame", "ForeverClassicUISettingsPanel", UIParent)
+    local panel = CreateFrame("Frame", "ForeverReframedSettingsPanel", UIParent)
     panel:Hide()
     panel:SetSize(680, 560)
     self.panel, self.frame = panel, panel
     self.rows, self.headers = {}, {}
 
-    local title = font(panel, "Forever Classic UI", "GameFontNormalLarge")
+    local title = font(panel, "Classic UI - Forever Reframed", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -16)
     title:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -24, -16)
     local note = font(panel, "Preview build: window borders only. In-game validation pending.")

@@ -1,10 +1,11 @@
 ## Interface: 11509
-## Title: Forever Classic UI - Era Workshop
+## Title: Classic UI - Forever Reframed - Era Workshop
 ## Notes: Classic UI settings, diagnostics and experimental Forever window borders. In-game validation pending.
-## Author: Forever Classic UI project
-## Version: 0.2.1-dev
+## Author: Classic UI - Forever Reframed project
+## Version: 0.2.2-dev
 ## X-License: MIT
-## SavedVariables: ForeverClassicUIDB
+## X-Curse-Project-ID: 1699904
+## SavedVariables: ForeverReframedDB
 ## OptionalDeps: ClassicFrames
 
 Core.lua

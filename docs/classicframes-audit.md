@@ -59,7 +59,7 @@ The TOC contains no dedicated main action bar module. Classic Frames alone there
 
 ## Recommended approach: independent companion addon
 
-Build `ForeverClassicUI` with its own namespace, build identification, and capability registry. Use diagnostic mode on unknown builds, enabling each module only after checking its required frames and methods.
+Build `ForeverReframed` with its own namespace, build identification, and capability registry. Use diagnostic mode on unknown builds, enabling each module only after checking its required frames and methods.
 
 An optional adapter can supplement an already loaded, compatible Classic Frames version. Declaring `OptionalDeps: ClassicFrames` requests the loading order, but **does not protect the client from errors inside Classic Frames itself**. Do not automatically bundle or enable the Retail version in Era.
 

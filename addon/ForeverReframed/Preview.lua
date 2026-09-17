@@ -23,7 +23,7 @@ function Preview:CreatePanel()
     if self.frame then return self.frame end
     -- This is a static reference board. No protected templates, unit bindings,
     -- native-frame mutations, or hooks into the Blizzard UI.
-    local panel = CreateFrame("Frame", "ForeverClassicUIPreview", UIParent)
+    local panel = CreateFrame("Frame", "ForeverReframedPreview", UIParent)
     panel:Hide()
     panel:SetSize(740, 620)
     panel:SetPoint("CENTER", UIParent, "CENTER")
@@ -41,7 +41,7 @@ function Preview:CreatePanel()
     local background = panel:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints(panel)
     background:SetColorTexture(0.045, 0.038, 0.026, 0.98)
-    label(panel, "Forever Classic UI — Classic references", 24, -24, 660, "GameFontNormalLarge")
+    label(panel, "Classic UI - Forever Reframed — Classic references", 24, -24, 660, "GameFontNormalLarge")
     label(panel, "Native texture samples. The game's interface is unchanged.", 24, -52, 675, "GameFontHighlightSmall")
     label(panel, "Drag to move. Press Escape to close. Automatically closes in combat.", 24, -72, 675, "GameFontHighlightSmall")
 
@@ -70,7 +70,7 @@ function Preview:CreatePanel()
     close:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -4, -4)
     close:SetScript("OnClick", function() panel:Hide() end)
 
-    UISpecialFrames[#UISpecialFrames + 1] = "ForeverClassicUIPreview"
+    UISpecialFrames[#UISpecialFrames + 1] = "ForeverReframedPreview"
     self.frame = panel
     return panel
 end

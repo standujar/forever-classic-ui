@@ -19,7 +19,7 @@ local function harness(saved, configure)
     local state = { combat = false, frames = {}, messages = {}, sensitiveCalls = 0, nativeMutations = 0 }
     local env = setmetatable({}, { __index = _G })
     env._G = env
-    env.ForeverClassicUIDB = saved
+    env.ForeverReframedDB = saved
     env.SlashCmdList = {}
     env.UISpecialFrames = {}
     env.UIParent = {}
@@ -136,11 +136,11 @@ local function harness(saved, configure)
 
     if configure then configure(env, state, region) end
     local addon = {}
-    for line in io.lines(root .. "/ForeverClassicUI.toc") do
+    for line in io.lines(root .. "/ForeverReframed.toc") do
         if line:match("%.lua$") then
             local chunk = assert(loadfile(root .. "/" .. line))
             setfenv(chunk, env)
-            chunk("ForeverClassicUI", addon)
+            chunk("ForeverReframed", addon)
         end
     end
     state.env, state.addon = env, addon
@@ -149,8 +149,8 @@ local function harness(saved, configure)
             if frame.events[event] and frame.scripts.OnEvent then frame.scripts.OnEvent(frame, event, ...) end
         end
     end
-    function state:command(input) self.env.SlashCmdList.FOREVERCLASSICUI(input) end
-    state:emit("ADDON_LOADED", "ForeverClassicUI")
+    function state:command(input) self.env.SlashCmdList.FOREVERREFRAMED(input) end
+    state:emit("ADDON_LOADED", "ForeverReframed")
     return state
 end
 
@@ -163,14 +163,43 @@ end
 test("no inspection or preview on load", function()
     local state = harness()
     equal(#state.frames, 1)
-    equal(state.env.ForeverClassicUIDB.lastReport, nil)
-    equal(state.env.ForeverClassicUIPreview, nil)
+    equal(state.env.ForeverReframedDB.lastReport, nil)
+    equal(state.env.ForeverReframedPreview, nil)
+end)
+
+test("renamed addon leaves the legacy database frames and command namespace untouched", function()
+    local previous = { schemaVersion = 1, settings = { enabled = true, modules = { quest_window = true } }, lastReport = { historical = true } }
+    local previousPreview = {}
+    local previousHandler = function() error("Unrelated legacy command invoked") end
+    local state = harness(nil, function(env)
+        env.ForeverClassicUIDB = previous
+        env.ForeverClassicUIPreview = previousPreview
+        env.SLASH_FOREVERCLASSICUI1 = "/legacy-other-addon"
+        env.SlashCmdList.FOREVERCLASSICUI = previousHandler
+    end)
+    equal(state.addon.name, "ForeverReframed")
+    equal(state.addon.db, state.env.ForeverReframedDB)
+    assert(state.addon.db ~= previous)
+    equal(state.addon.db.settings.enabled, false)
+    equal(state.addon.db.settings.modules.quest_window, nil)
+    equal(state.addon.db.lastReport, nil)
+    state:command("status")
+    state:command("preview")
+    equal(state.env.ForeverClassicUIDB, previous)
+    equal(previous.settings.enabled, true)
+    equal(previous.settings.modules.quest_window, true)
+    equal(previous.lastReport.historical, true)
+    equal(state.env.ForeverClassicUIPreview, previousPreview)
+    assert(state.env.ForeverReframedPreview ~= previousPreview)
+    equal(state.env.SLASH_FOREVERCLASSICUI1, "/legacy-other-addon")
+    equal(state.env.SlashCmdList.FOREVERCLASSICUI, previousHandler)
+    equal(state.env.SLASH_FOREVERREFRAMED1, "/foreverui")
 end)
 
 test("status stores only build and UI capability report", function()
     local state = harness()
     state:command("  STATUS ")
-    local report = state.env.ForeverClassicUIDB.lastReport
+    local report = state.env.ForeverReframedDB.lastReport
     equal(report.client.interfaceVersion, 11509)
     equal(report.client.locale, "frFR")
     equal(report.foreverCompatibility, "unvalidated")
@@ -194,8 +223,8 @@ test("inspect handles optional APIs missing and remains read only in combat", fu
     state.env.C_Secrets = nil
     state.combat = true
     state:command("inspect")
-    equal(state.env.ForeverClassicUIDB.lastReport.api.issecretvalue, false)
-    equal(state.env.ForeverClassicUIDB.lastReport.api.C_Secrets, false)
+    equal(state.env.ForeverReframedDB.lastReport.api.issecretvalue, false)
+    equal(state.env.ForeverReframedDB.lastReport.api.C_Secrets, false)
     equal(state.sensitiveCalls, 0)
     equal(state.nativeMutations, 0)
     assert(#state.messages >= #state.addon:GetModule("Diagnostics").frameNames)
@@ -217,7 +246,7 @@ test("beta report detects modern windows and Settings without invoking gameplay 
     state.env.QuestMapFrame = { IsProtected = function() return false end }
     state.env.FocusFrame = { IsProtected = function() return true end }
     state:command("inspect")
-    local report = state.env.ForeverClassicUIDB.lastReport
+    local report = state.env.ForeverReframedDB.lastReport
     equal(report.client.interfaceVersion, 16001)
     equal(report.client.build, "69893")
     equal(report.frames.PlayerSpellsFrame.present, true)
@@ -237,10 +266,10 @@ end)
 test("report survives simulated SavedVariables reload without new scan", function()
     local first = harness()
     first:command("status")
-    local persisted = clone(first.env.ForeverClassicUIDB)
+    local persisted = clone(first.env.ForeverReframedDB)
     local reloaded = harness(persisted)
-    equal(reloaded.env.ForeverClassicUIDB, persisted)
-    equal(reloaded.env.ForeverClassicUIDB.lastReport.client.build, "69722")
+    equal(reloaded.env.ForeverReframedDB, persisted)
+    equal(reloaded.env.ForeverReframedDB.lastReport.client.build, "69722")
     equal(#reloaded.messages, 0)
 end)
 
@@ -248,7 +277,7 @@ test("preview cannot be created or opened in combat", function()
     local state = harness()
     state.combat = true
     state:command("preview")
-    equal(state.env.ForeverClassicUIPreview, nil)
+    equal(state.env.ForeverReframedPreview, nil)
     equal(#state.frames, 1)
     equal(#state.env.UISpecialFrames, 0)
 end)
@@ -256,9 +285,9 @@ end)
 test("preview closes on combat and can later reopen only on request", function()
     local state = harness()
     state:command("preview")
-    local panel = state.env.ForeverClassicUIPreview
+    local panel = state.env.ForeverReframedPreview
     equal(panel:IsShown(), true)
-    equal(state.env.UISpecialFrames[1], "ForeverClassicUIPreview")
+    equal(state.env.UISpecialFrames[1], "ForeverReframedPreview")
     panel.scripts.OnDragStart(panel)
     equal(panel.moving, true)
     state.combat = true
@@ -283,7 +312,7 @@ test("native and exported media preserve intended paths", function()
     local media = harness().addon:GetModule("Media")
     equal(media:Resolve("targetFrame"), "Interface\\TargetingFrame\\UI-TargetingFrame")
     media:SetSource("local")
-    equal(media:Resolve("talentBorder"), "Interface\\AddOns\\ForeverClassicUI\\Media\\interface\\talentframe\\ui-talentframe-botleft.blp")
+    equal(media:Resolve("talentBorder"), "Interface\\AddOns\\ForeverReframed\\Media\\interface\\talentframe\\ui-talentframe-botleft.blp")
     assert(not pcall(function() media:SetSource("unknown") end))
 end)
 
@@ -512,7 +541,7 @@ local function withSettings(env, state)
     env.Settings = {
         RegisterCanvasLayoutCategory = function(panel, label)
             state.settingsCalls.canvas = state.settingsCalls.canvas + 1
-            equal(label, "Forever Classic UI")
+            equal(label, "Classic UI - Forever Reframed")
             state.settingsPanel = panel
             return { GetID = function() return 17 end }
         end,
@@ -529,8 +558,8 @@ end
 
 test("Settings registers once and the sole foreverui command opens its native category", function()
     local state = harness(nil, withSettings)
-    equal(state.env.SLASH_FOREVERCLASSICUI1, "/foreverui")
-    equal(state.env.SLASH_FOREVERCLASSICUI2, nil)
+    equal(state.env.SLASH_FOREVERREFRAMED1, "/foreverui")
+    equal(state.env.SLASH_FOREVERREFRAMED2, nil)
     for name, value in pairs(state.env) do
         if name:match("^SLASH_") then
             assert(value ~= "/fcui", "The retired command must not remain registered")
@@ -610,7 +639,7 @@ test("a failed settings panel stays hidden and is not repeatedly reconstructed",
     end)
     local settings = state.addon:GetModule("Settings")
     equal(settings.panel, nil)
-    equal(state.env.ForeverClassicUISettingsPanel:IsShown(), false)
+    equal(state.env.ForeverReframedSettingsPanel:IsShown(), false)
     equal(attempts, 1)
     state:emit("PLAYER_LOGIN")
     state:emit("ADDON_LOADED", "AnotherBlizzardAddon")

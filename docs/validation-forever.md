@@ -1,6 +1,11 @@
 # Forever beta validation status
 
-Date: September 17, 2026. Current development addon: `0.2.1-dev`.
+Date: September 17, 2026. Current development addon: `0.2.2-dev`.
+
+The renamed `ForeverReframed` 0.2.2-dev beta package is installed locally with
+all 13 files verified against its archive. The verified older workshop folder
+was backed up outside AddOns before replacement; SavedVariables were untouched.
+Both client targets were rebuilt with and without optional preview artwork.
 
 The user cannot enter the beta yet. Source inspection and offline tests are
 available; no in-game beta rendering or behavior is confirmed.
@@ -52,7 +57,7 @@ session for runtime version reporting, modern-window detection and read-only
 Settings capability detection. Those results apply to that diagnostic version;
 they are not beta runtime validation or a test count for the new version.
 
-The current package is `ForeverClassicUI-0.2.1-dev-forever-beta.zip`. It includes
+The current package is `ForeverReframed-0.2.2-dev-forever-beta.zip`. It includes
 the one local dialog-border BLP listed in `RequiredMedia.txt`.
 `--with-preview-media` adds eight reference samples, for nine BLPs total. Preview
 lookup remains native by default; experimental window borders use the required
@@ -65,18 +70,25 @@ Both Era and beta packages were checked with and without optional preview media
 (one or nine BLPs), and packaging left the source TOC unchanged. These are
 installation checks, not in-game results.
 
-The subsequent `0.2.1-dev` package is now installed in the same beta directory,
+The subsequent `0.2.1-dev` package was installed in the same beta directory,
 with all 13 files verified against its ZIP and the previous version backed up.
 All four Era/beta packaging variants were rebuilt and checked for the new version
 and `/foreverui` command. No old command alias is registered in this version.
 
-## Implemented offline in 0.2.0-dev; command updated in 0.2.1-dev
+Those historical packages used the `ForeverClassicUI` addon directory and
+`ForeverClassicUIDB` settings. Version `0.2.2-dev` adopts the public name
+**Classic UI - Forever Reframed**, the `ForeverReframed` directory and the distinct
+`ForeverReframedDB` namespace. It does not read or modify the old database. The
+`/foreverui` command is unchanged; the renamed addon starts with default-off
+settings. The earlier installation checks describe the earlier package names.
+
+## Current implementation and development history
 
 - Native Settings canvas registration, opened with `/foreverui` or
   `/foreverui settings` from version `0.2.1-dev`. The previous command has been
-  removed; settings and saved reports are preserved.
+  removed in that version.
 - A master switch, per-module checkboxes, status messages, reset and texture
-  preview. `ForeverClassicUIDB.settings` persists choices; all start disabled.
+  preview. `ForeverReframedDB.settings` persists choices; all start disabled.
 - Three experimental modules: `quest_window`, `player_spells_window` and
   `world_map_window`. Talents and spellbook share a single checkbox.
 - Classic side and bottom border artwork only. The native top decoration,
@@ -92,13 +104,13 @@ These are code capabilities prepared for testing, not a complete Classic window
 restoration or a claim of in-game safety. Unit-frame and HUD restoration is not
 implemented. Nameplates remain outside restoration and have no setting.
 
-All 27 Lua 5.1 behavioral tests pass: the eight existing diagnostic tests and
-19 additional tests for the settings/restoration implementation. They simulate
+All 28 Lua 5.1 behavioral tests pass: the eight existing diagnostic tests,
+19 settings/restoration tests and one renamed-namespace isolation test. They simulate
 the relevant APIs; no beta runtime result follows from those passes.
 
 ## First in-game check when beta access opens
 
-1. Start the beta and enable **Forever Classic UI - Beta Workshop** in AddOns.
+1. Start the beta and enable **Classic UI - Forever Reframed - Beta Workshop** in AddOns.
    Restart the client if it was already running when the addon was installed.
 2. Outside combat, open `/foreverui`. Confirm the native Settings category, the
    default-off master switch and three unchecked window modules.
