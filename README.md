@@ -1,189 +1,126 @@
 # Classic UI - Forever Reframed
 
-[CurseForge project](https://www.curseforge.com/wow/addons/classic-ui-forever-reframed/preview)
-— project ID `1699904`. The `0.2.3-dev` beta-client package was automatically
-uploaded as a **Release** after [CI passed](https://github.com/standujar/forever-classic-ui/actions/runs/35257915758).
-Its status was **Processing** when checked on September 17, 2026; public approval
-is not confirmed. See the
-[submission and validation status](docs/validation-forever.md#curseforge-submission).
+**Bringing the Classic look to Forever.** An open-source addon working toward
+Classic Era unit frames, windows, maps and HUD, with simple choices in the game's
+Edit Mode. Nameplates always keep Forever's native appearance and behavior.
 
-**Project goal: restore the entire Classic Era in-game interface in World of
-Warcraft: Forever, except nameplates.** This open-source project covers unit
-frames, action bars,
-minimap, talents, quests, world and flight maps, character panels, spellbooks,
-bags, banks, professions, mail, auctions, social panels and other windows and
-controls. Nameplates remain as provided by the Forever client.
+[CurseForge](https://www.curseforge.com/wow/addons/classic-ui-forever-reframed/preview)
+· [Report an issue](https://github.com/standujar/forever-classic-ui/issues)
+· [Contribute](CONTRIBUTING.md)
 
-Each part of the interface is intended to be selectable directly in the game's
-Edit Mode, so players can choose where to use Classic styling and where to
-keep Forever's presentation.
+## Available in development
 
-**Current implementation — early development:** version **0.2.3-dev** adds a
-Classic UI section directly to native Edit Mode and retains three experimental
-window-border modules, alongside diagnostics and a texture preview. Fresh
-settings start disabled. These are partial borders, not restored
-Classic windows; unit-frame and HUD restoration is not implemented. The source
-TOC targets **Classic Era 1.15.9**; the experimental modules require **Forever beta
-1.60.1.69893 / candidate Interface 16001**. All new behavior remains unvalidated
-in game while beta access is unavailable.
+**Version 0.3.0-dev** adds grouped controls and expands the experimental Classic
+side and bottom borders from three windows to sixteen:
 
-The CurseForge Release channel describes the uploaded file's distribution
-category; the implementation remains experimental with the limitations above.
+- **Character and skills**, **talents and spellbook**, **professions** and **recipe inspection**.
+- **Quests**, **NPC conversations**, **merchants**, **trainers**, **books and letters**.
+- **Mailbox**, **opened mail**, **trade**, **auction house**, **bank**, **friends and social**.
+- **World map**.
 
-Open native Edit Mode with **`/foreverui`** or **`/foreverui edit`**, or use
-**Escape → Edit Mode**. The Classic UI options follow that window as it opens,
-closes or moves. The older `/foreverui settings` subcommand opens the same place.
-Version `0.2.2-dev` introduced the **Classic UI - Forever Reframed** name and a
-distinct `ForeverReframed` addon folder and namespace. Version `0.2.3-dev` keeps
-those `ForeverReframedDB` choices;
-settings and reports from the older addon namespace are not imported.
+These are partial skins. Titles, portraits, buttons, contents, sizes and layouts
+remain native. Complete Classic windows, unit frames and HUD styling are still
+in development; bags and loot windows do not yet have skins. The separate local
+BlizzMove fixes enable movement and are not part of this addon.
+
+The package targets **Forever beta 1.60.1, builds 69893 and 69913**. Interface
+**16001** is confirmed by the user's build 69913 logs. The new grouped controls
+and expanded skins still need in-game visual, interaction and combat validation.
+See the [current validation record](docs/validation-forever-69913.md).
+
+The last recorded CurseForge upload is **0.2.3-dev**, submitted as a **Release**
+on September 17, 2026. Its observed status was Processing; that dated observation
+is not a current approval check. See the [submission record](docs/validation-forever.md#curseforge-submission).
 
 ![Classic Era artwork reference — restoration targets](docs/images/classic-era-contact-sheet.png)
 
-*Original Classic Era texture samples for unit frames, quests, talents, bars,
-minimap and windows. Visual references only; not an in-game screenshot or
-completed restoration. Artwork © Blizzard Entertainment.*
+*Classic Era texture references, not a completed Forever interface. Artwork
+© Blizzard Entertainment. The gallery's [earlier Era preview](docs/images/classic-era-ingame-prototype.png)
+also predates the current modules.*
 
-A historical [in-game texture-preview capture](docs/images/classic-era-ingame-prototype.png)
-shows the `0.1` prototype on Classic Era `1.15.9`, before the addon was renamed.
-That preview leaves the native interface unchanged and does not show the current
-beta modules.
+## Choose your Classic UI
 
-## What's included
+Open **Escape → Edit Mode** or type **`/foreverui`**, outside combat. The Classic UI
+section follows the native Edit Mode window; there is no separate Settings page.
 
-- An original modular Lua addon with Classic UI options in Edit Mode,
-  per-module selections, client diagnostics and a texture preview.
-- Experimental side and bottom borders for quest interactions, the combined
-  talents/spellbook window and the world map. The native top decoration, portrait,
-  title, buttons, dimensions, content layout and gameplay remain unchanged.
-- **8,827 unchanged BLP textures (162.2 MiB)** in
-  [assets/classic-era](assets/classic-era), with provenance and SHA-256 hashes.
-- Local, read-only CASC extraction tools for obtaining interface resources from
-  an installed client.
-- 37 addon behavioral tests under Lua 5.1 through Lupa, plus 21 Python tests for
-  release validation and upload handling.
-- A [Classic Frames compatibility audit](docs/classicframes-audit.md).
-- An [in-game restoration checklist](docs/ui-coverage.md), distinguishing
-  extracted artwork, diagnostic coverage and functional replacement work.
+- **Classic everywhere** selects all restoration groups and clears individual exceptions.
+- **Restore Forever** disables restoration and clears group choices and exceptions.
+- Choose **Windows** or **Maps** to style a group without checking every window.
+- Expand **Customize** only when you want an exception, such as Classic windows
+  with a native spellbook. A dash marks a group with mixed selections.
+- **Unit frames** and **Action bars & HUD** show **Coming soon** and cannot be
+  selected individually until their modules exist.
 
-The original code is **MIT licensed**. Blizzard artwork is separately attributed
-and is not relicensed under MIT. See [NOTICE.md](NOTICE.md).
+Fresh installations start off. Existing `ForeverReframedDB` selections survive
+upgrades. Once selected, a group's default also applies to future modules in
+that group; individual exceptions take precedence. **Classic everywhere** also
+opts into future unit-frame and HUD modules as they become available.
 
-## Restoration roadmap
+Choices save immediately and apply across all Edit Mode layouts. Native **Save**
+and **Revert** do not change addon choices. Turning a skin off restores its
+captured native border. Unsupported or protected windows retain their native
+appearance, and changes wait until combat ends. Nameplates have no restoration
+option.
 
-The full-interface goal includes all of the following work. Complete restoration
-of these areas is still pending:
+## Install the development build
 
-- **Unit frames:** player, target, target of target, pet, party and raid frames,
-  with their health/resource bars, cast bars, buffs and debuffs.
-- **Windows and maps:** talents, spellbooks, quests, character panels, bags,
-  bank, professions, vendors, mail, auctions, social panels, world and flight maps.
-- **HUD and shared controls:** action bars, stance/pet bars, minimap, micro menu,
-  XP/reputation bars, tooltips, chat, menus, dialogs, tabs and other in-game controls.
-
-Work starts with validating the Edit Mode options and the three partial
-window-border modules in the beta, then building unit-frame styling and complete Classic
-window layouts, followed by the remaining HUD and shared controls. Available
-modules will be added to the same Edit Mode section as they are implemented.
-Nameplates remain native throughout. The [full checklist](docs/ui-coverage.md)
-tracks the scope and distinguishes finished work from planned restoration.
-
-## Try the development addon
-
-When updating from this project's development versions before `0.2.2-dev`,
-disable the previous development copy before enabling the renamed addon. The
-new package uses the `ForeverReframed` directory and its own saved settings.
-
-### Classic Era
-
-1. Run `python3 tools/package_addon.py --target era` and close Classic Era.
-2. Extract the archive's `ForeverReframed` folder into that client's
-   `Interface/AddOns` directory. Packaging includes the required artwork.
-3. Start the game and enable **Classic UI - Forever Reframed** in the addon list.
-4. Run `/foreverui status`, then `/foreverui preview` while out of combat.
-
-On macOS, the usual destination is
-`/Applications/World of Warcraft/_classic_era_/Interface/AddOns/ForeverReframed`.
-
-### Forever beta
-
-Build the separate beta archive. The following in-game steps are for when beta
-access becomes available:
+For Forever beta, run this from the repository root:
 
 ```sh
 python3 tools/package_addon.py --target forever-beta
 ```
 
 1. Close the beta client.
-2. Extract the `ForeverReframed` folder from
-   `dist/ForeverReframed-0.2.3-dev-forever-beta.zip` into
+2. Extract `ForeverReframed` from `dist/ForeverReframed-0.3.0-dev-forever-beta.zip`
+   into the beta client's `Interface/AddOns` folder. On macOS this is usually
    `/Applications/World of Warcraft/_classic_beta_/Interface/AddOns/`.
-3. Start the beta and enable **Classic UI - Forever Reframed** in the addon list.
-4. Outside combat, use **Escape → Edit Mode** or `/foreverui`. Confirm the attached
-   Classic UI section. On a fresh installation, the master switch and all module
-   checkboxes start off. Close Edit Mode, open quest interactions, talents/spellbook
-   and the map using the game's normal controls, then run `/foreverui inspect`
-   for a baseline.
-5. Return to Edit Mode and enable the master switch and one available window
-   module at a time. Close Edit Mode to check its border and native controls,
-   then uncheck the module to verify the original appearance returns. The
-   combined talents/spellbook window has one checkbox.
-6. Run `/foreverui preview`, close it with `/foreverui hide`, and use **Reset to defaults**
-   to turn restoration off. Run `/foreverui inspect` and `/reload` to save the final
-   report and settings locally.
+3. Enable **Classic UI - Forever Reframed** in the addon list and enter the game.
+4. Open Edit Mode, select **Windows**, then open the windows you want to test.
+   Use **Customize** for exceptions and **Restore Forever** to check that the
+   original borders return.
+5. Run `/foreverui inspect`, then `/reload` to save the diagnostic report locally.
 
-This package uses candidate Interface `16001`, inferred from client version
-`1.60.1`; the in-game `GetBuildInfo()` result must confirm it. Source inspection
-identified `PlayerSpellsFrame` for Camelot talents and spellbook, the map frames
-and the native Edit Mode manager. These findings do not establish
-in-game compatibility. Modules require the exact version, build and candidate
-Interface value, plus the expected unprotected frame structure. Unsupported
-windows keep their native appearance. See [the beta validation log](docs/validation-forever.md).
+Install the archive, including its required border texture. Copying only the Lua
+source directory is incomplete. If updating from a version before `0.2.2-dev`,
+disable the old development addon copy; its older namespace is not imported.
 
-The Classic UI section in Edit Mode has a master switch, individual window
-checkboxes, status messages and a reset action. There is no separate addon
-Settings category. Choices update immediately in `ForeverReframedDB.settings`
-and apply across all Edit Mode layouts. Native **Save** and **Revert** do not save
-or undo these addon choices; use the Classic UI checkboxes or reset action.
-Disabling a module restores the border texture
-alphas captured when it was enabled. Changes wait until combat ends; windows
-loaded or reopened later are handled by the restoration engine. These mechanisms
-have offline tests, but their actual rendering, interactions and combat behavior
-still need beta validation. Nameplates have no restoration option.
-
-### Commands and reports
+### Commands
 
 | Command | Behavior |
 | --- | --- |
-| `/foreverui` or `/foreverui edit` | Opens native Edit Mode with the Classic UI options outside combat |
+| `/foreverui` or `/foreverui edit` | Opens native Edit Mode with Classic UI options outside combat |
 | `/foreverui settings` | Compatibility alias for the same Edit Mode options |
 | `/foreverui status` | Reports client build and UI capabilities |
-| `/foreverui inspect` | Includes frame availability/protection, Edit Mode registration, Settings capabilities and restoration states |
-| `/foreverui preview` | Toggles texture samples for unit frames, buttons, quests and talents |
-| `/foreverui hide` | Closes the preview; Escape also works |
+| `/foreverui inspect` | Reports frame availability/protection and restoration states |
+| `/foreverui preview` | Toggles reference textures; does not restore the interface |
+| `/foreverui hide` | Closes the texture preview; Escape also works |
 
-The preview closes when combat starts and cannot be opened during combat. It
-does not modify native frames or display a functional talent tree. The diagnostic
-report is stored in `ForeverReframedDB.lastReport`; the game saves it on reload
-or logout. It contains no character, account or combat data. Load-on-demand
-windows may appear absent until opened.
+The preview closes in combat. Diagnostic reports are held in
+`ForeverReframedDB.lastReport` and written to disk on reload or logout. They
+contain no character, account or combat data. Load-on-demand windows may appear
+absent until opened. Diagnostic frame counts do not measure restoration coverage.
 
-Version `0.2.3-dev` samples 25 named frames and reports native Settings API
-presence, Edit Mode control registration and restoration states. The historical Era result of 19/21 came from
-version `0.1.0-dev`, which had 21 probes. These are diagnostic samples, not counts
-of all Classic frames or measurements of how much of the UI is restored.
+The source TOC remains **Classic Era 1.15.9 / Interface 11509**. Use
+`python3 tools/package_addon.py --target era` for Era diagnostics and texture
+previews; the experimental window skins require one of the supported Forever
+builds. The [historical Era test](docs/validation-era.md) confirms loading,
+reference texture rendering and report persistence for that earlier prototype.
 
-The [first in-game smoke test](docs/validation-era.md) confirmed that the addon
-loads, its native texture samples render and the diagnostic report persists on
-Era 1.15.9. Combat behavior, broader compatibility and functional replacements
-still require client testing. The automated tests use a simulated WoW environment.
+## What comes next
+
+The goal remains the entire Classic-style **in-game** interface except nameplates:
+
+- Complete window artwork and layouts, including bags, loot, quests and professions.
+- Player, target, pet, party and raid frames with their related indicators.
+- World and flight maps, minimap, action bars and the remaining HUD.
+- Shared controls, tooltips, chat, menus and dialogs.
+
+The [restoration checklist](docs/ui-coverage.md) separates implemented partial
+skins from complete restoration. Each module needs target-client testing of
+rendering, native interactions, combat, scaling and compatibility. Talent trees,
+maps and other windows must keep Forever's data and gameplay.
 
 ## Development
-
-Every PR runs automated checks and produces downloadable addon ZIPs. A new
-version merged into `main` is uploaded to CurseForge as a **Release** after the
-checks pass, once the `CF_API_TOKEN` repository secret is configured. See the
-[CI and release guide](docs/releasing.md) for setup, versioning and retry steps.
 
 Python 3.11 or newer:
 
@@ -192,76 +129,42 @@ python3 -m venv tools/python-env
 tools/python-env/bin/python -m pip install -r tools/requirements.txt
 tools/python-env/bin/python tests/run.py
 tools/python-env/bin/python -m unittest discover -s tests -p 'test_*.py'
-python3 tools/package_addon.py
+python3 tools/package_addon.py --target forever-beta
 ```
 
-Archives are written to `dist/`. The default target is `era`; select
-`--target forever-beta` for the separate beta package. Both include the one local
-Classic dialog-border BLP listed in `RequiredMedia.txt`. Add
-`--with-preview-media` to bundle the eight reference samples as well, for nine
-BLPs total. The texture preview still uses native resources by default; the
-window-border modules use their required bundled texture.
+Every PR runs checks and produces downloadable ZIPs. A version change merged
+into `main` uploads a **Release** to CurseForge after checks pass. Documentation
+or same-version updates do not publish. See the [release guide](docs/releasing.md).
+Automated tests simulate the WoW APIs; passing them does not establish in-game
+compatibility.
 
-To generate a quick reference sheet:
+Packages include the required dialog-border BLP. Add `--with-preview-media` to
+bundle eight reference samples too. The default packaging target is `era`;
+archives are written to `dist/`. See the [addon extension points](addon/ForeverReframed/README.md#extension-points)
+for adding modules and preserving group choices.
+
+## Artwork and references
+
+The repository includes **8,827 unchanged BLP textures (162.2 MiB)** with provenance
+and SHA-256 hashes in [assets/classic-era](assets/classic-era). The initial local
+Classic Era `1.15.9.69722` extraction recovered 34,108 files, including 31,142
+textures and the native Lua/XML sources. Only the selected art pack is tracked;
+full client exports, account settings and generated archives remain local.
+
+Use the [read-only extraction tools](tools/casc/README.md) for installed-client
+research. Create reference previews with:
 
 ```sh
 tools/python-env/bin/python tools/preview_assets.py --source assets/classic-era
 ```
 
-Use `--verify-all` for a full decode check, which can take several minutes.
-Some modern BLP encodings are unsupported by Pillow; a decode limitation does
-not by itself indicate a damaged original file.
-
-## Interface resources
-
-The initial local extraction from **Classic Era 1.15.9.69722** recovered
-34,108 files: 31,142 BLP textures, 1,899 Lua files, 775 XML files and 292 TOC files
-(approximately 1.8 GB). This includes 200 talent textures and the native talent
-window source. The repository includes a selected frame-art pack, rather than
-the full extraction, zone-map tile collection, shop assets or game UI source.
-The reference pack and diagnostic probes are research resources; their inclusion
-does not establish restoration progress or override the scope checklist.
-
-The extraction explicitly selects the `wow_classic_era` product from the shared
-CASC installation. See [the extraction guide](tools/casc/README.md). Full exports,
-local installation reports, tool downloads and generated archives are ignored
-by Git. Original BLP files are preserved; PNGs are only previews.
-
-Classic clients contain some shared resources from other versions. Presence in
-an Era archive does not prove that a texture is used by its Vanilla UI. For talent
-layout research, follow `Blizzard_TalentUI_Vanilla.toc` and its `classic` sources.
-
-## Relationship to Classic Frames
+Presence in a shared archive does not prove that an asset belongs to the Vanilla
+UI. Module research follows the active client manifests and frame definitions.
 
 [Classic Frames](https://github.com/Daenarys/ClassicFrames) is a separate addon
-and a useful compatibility reference. The audited version is **3.82 for Retail
-12.1**, commit `55b66cc4b45e0a581b1a8d388980620f59f4f491`. Its project page lists
-All Rights Reserved; this repository does not include its implementation.
+used as a compatibility reference. The [audit](docs/classicframes-audit.md)
+covers Retail version 3.82; its implementation is not included here. An optional
+dependency does not make that Retail addon compatible with Forever.
 
-Our addon is standalone at this stage. An optional dependency allows future
-coexistence with a compatible Classic Frames release, but does not make the
-Retail version compatible with Era or Forever. Changing a TOC number alone is
-not a port.
-
-## Roadmap
-
-- Track all in-game UI families except nameplates in the
-  [restoration checklist](docs/ui-coverage.md).
-- Inspect the actual Forever client, build and UI APIs before final adaptation.
-- Validate the options attached to native Edit Mode and the three experimental
-  border modules, including layouts, native Save/Revert, reloads and combat.
-- Extend the Edit Mode options as additional restoration modules are implemented.
-  Unchecked modules retain Forever's appearance; nameplates always remain native.
-- Restore window artwork and layout in isolated, reversible modules.
-- Cover talents, quests, character panels, spellbooks, bags, bank, world map and
-  flight map windows.
-- Cover mail, trade, professions, auctions, social, pet, PvP and settings windows,
-  including their buttons, tabs and other controls.
-- Restore Classic unit frames, action bars, minimap and the remaining HUD while
-  preserving secure gameplay.
-- Validate each module in combat, at different UI scales and with other addons.
-
-Talent trees and maps must retain the target client's data and mechanics.
-The goal is a Classic-style in-game interface built on the supported client APIs,
-with Forever's native nameplates retained. See [CONTRIBUTING.md](CONTRIBUTING.md)
-to help.
+Original addon code is **MIT-licensed**. Blizzard artwork is separately
+attributed and is not relicensed under MIT. See [NOTICE.md](NOTICE.md).

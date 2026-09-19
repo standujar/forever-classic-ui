@@ -14,7 +14,7 @@ ADDON = ROOT / 'addon' / 'ForeverReframed'
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--target', choices=('era', 'forever-beta'), default='era',
-                        help='Target client; the Forever beta interface number is provisional.')
+                        help='Target client; Forever uses the observed in-game Interface 16001.')
     parser.add_argument('--with-preview-media', action='store_true',
                         help='Include only Media.lua sample textures from the local Era extraction.')
     args = parser.parse_args()
@@ -35,12 +35,12 @@ def main():
     packaged_toc = None
     if args.target == 'forever-beta':
         target_interface = 16001
-        target_client_version = '1.60.1.69893'
-        interface_basis = 'candidate derived from installed client version; in-game GetBuildInfo not verified'
+        target_client_version = '1.60.1.69913'
+        interface_basis = 'Interface 16001 observed in user runtime logs on build 69913'
         overrides = {
             'Interface': str(target_interface),
             'Title': 'Classic UI - Forever Reframed - Beta Workshop',
-            'Notes': 'Classic UI options in Edit Mode and experimental window borders. In-game validation pending.',
+            'Notes': 'Grouped Classic styling in Edit Mode, with experimental window borders.',
         }
         packaged_toc = '\n'.join(
             f'## {key}: {overrides[key]}' if key in overrides else line

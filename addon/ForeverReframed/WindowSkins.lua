@@ -2,21 +2,24 @@
 local _, Addon = ...
 local Skins = Addon:RegisterModule("WindowSkins", {})
 
--- Observed in the extracted 1.60.1 / 69893 UI: QuestFrame and
--- PlayerSpellsFrame have NineSlice; WorldMapFrame uses BorderFrame.NineSlice.
+-- Observed in the extracted Forever 1.60.1 UI: the allowlisted ordinary
+-- windows inherit portrait/ButtonFrame NineSlice chrome; WorldMapFrame uses
+-- BorderFrame.NineSlice. Do not extend this to every frame with a NineSlice:
+-- bags and loot, for example, crop their corners dynamically during layout.
 -- Keep their entire top decoration, portrait, title, controls and content.
 -- The five custom regions are outside the native frame's content rectangle.
 local pieces = { "LeftEdge", "RightEdge", "BottomEdge", "BottomLeftCorner", "BottomRightCorner" }
 local borderFile = "Interface\\AddOns\\" .. Addon.name .. "\\Media\\interface\\dialogframe\\ui-dialogbox-border.blp"
 local edgeSize = 16
+local supportedBuilds = { ["69893"] = true, ["69913"] = true }
 
 local function supportedBuild()
     if type(GetBuildInfo) ~= "function" or type(CreateFrame) ~= "function" then
         return false, "Required frame APIs are unavailable."
     end
     local version, build, _, interface = GetBuildInfo()
-    if version ~= "1.60.1" or tostring(build) ~= "69893" or interface ~= 16001 then
-        return false, "Window borders require the observed Forever 1.60.1 build 69893 (TOC 16001)."
+    if version ~= "1.60.1" or not supportedBuilds[tostring(build)] or interface ~= 16001 then
+        return false, "Window borders require Forever 1.60.1 build 69893 or 69913 (TOC 16001)."
     end
     return true
 end
@@ -51,7 +54,8 @@ local function resolveTarget(descriptor)
     local root = _G[descriptor.frameName]
     if not root then return nil, "waiting" end
     if not safeFrame(root) then return nil, "The native window is protected or cannot be inspected." end
-    local chrome = descriptor.borderChild and root[descriptor.borderChild] or root
+    local chrome = root
+    if descriptor.borderChild then chrome = root[descriptor.borderChild] end
     if not safeFrame(chrome) then return nil, "The window border is protected or unavailable." end
     local slice = chrome.NineSlice
     if not safeFrame(slice) or type(slice.GetFrameLevel) ~= "function"
@@ -182,10 +186,27 @@ function Skins:Initialize()
     local windows = {
         { id = "quest_window", label = "Quest window border", frameName = "QuestFrame" },
         { id = "player_spells_window", label = "Talents and spellbook window border", frameName = "PlayerSpellsFrame" },
-        { id = "world_map_window", label = "World map window border", frameName = "WorldMapFrame", borderChild = "BorderFrame" },
+        { id = "world_map_window", label = "World map window border", frameName = "WorldMapFrame", borderChild = "BorderFrame", group = "maps" },
+        -- Camelot CharacterFrame inherits PortraitFrameBaseTemplate. SkillsFrame
+        -- is its content tab, so keep a single choice for the shared border.
+        { id = "character_window", label = "Character and skills window border", frameName = "CharacterFrame" },
+        -- ProfessionsFrameBase and InspectRecipeFrame inherit portrait chrome;
+        -- recipe buttons, crafting operations and their content stay native.
+        { id = "professions_window", label = "Professions window border", frameName = "ProfessionsFrame" },
+        { id = "inspect_recipe_window", label = "Recipe inspection window border", frameName = "InspectRecipeFrame" },
+        { id = "merchant_window", label = "Merchant window border", frameName = "MerchantFrame" },
+        { id = "mail_window", label = "Mailbox window border", frameName = "MailFrame" },
+        { id = "open_mail_window", label = "Open mail window border", frameName = "OpenMailFrame" },
+        { id = "social_window", label = "Friends and social window border", frameName = "FriendsFrame" },
+        { id = "gossip_window", label = "NPC conversation window border", frameName = "GossipFrame" },
+        { id = "trade_window", label = "Trade window border", frameName = "TradeFrame" },
+        { id = "auction_house_window", label = "Auction house window border", frameName = "AuctionHouseFrame" },
+        { id = "bank_window", label = "Bank window border", frameName = "BankFrame" },
+        { id = "trainer_window", label = "Trainer window border", frameName = "ClassTrainerFrame" },
+        { id = "item_text_window", label = "Books and letters window border", frameName = "ItemTextFrame" },
     }
     for _, descriptor in ipairs(windows) do
-        descriptor.group = "Windows"
+        descriptor.group = descriptor.group or "windows"
         descriptor.description = "Classic side and bottom borders. Keeps the native top, portrait, buttons, size and content layout."
         descriptor.IsSupported = supportedBuild
         descriptor.Apply = apply

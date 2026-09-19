@@ -70,7 +70,7 @@ def validate_package(root, archive=None):
     require(isinstance(manifest, dict), 'Invalid package manifest.')
     checks = {
         'archive': expected.name, 'addon_version': version, 'target': 'forever-beta',
-        'target_client_version': '1.60.1.69893', 'target_interface': 16001,
+        'target_client_version': '1.60.1.69913', 'target_interface': 16001,
     }
     require(all(manifest.get(key) == value for key, value in checks.items()), 'Package target/version mismatch.')
     require(manifest.get('bundled_media_files') == manifest.get('required_media_files')

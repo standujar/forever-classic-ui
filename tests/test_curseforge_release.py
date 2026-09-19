@@ -45,7 +45,7 @@ class PublicationTests(unittest.TestCase):
         }
         self.manifest = {
             'archive': self.archive.name, 'addon_version': self.version, 'target': 'forever-beta',
-            'target_client_version': '1.60.1.69893', 'target_interface': 16001,
+            'target_client_version': '1.60.1.69913', 'target_interface': 16001,
             'required_media_files': 0, 'bundled_media_files': 0,
         }
         self.repack()

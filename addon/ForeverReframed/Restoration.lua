@@ -6,12 +6,29 @@ Restoration.options = {}
 Restoration.byID = {}
 Restoration.applied = {}
 Restoration.status = {}
+Restoration.groups = {
+    { id = "unit_frames", label = "Unit frames" },
+    { id = "windows", label = "Windows" },
+    { id = "maps", label = "Maps" },
+    { id = "hud", label = "Action bars & HUD" },
+}
+
+local function knownGroup(id)
+    for _, group in ipairs(Restoration.groups) do
+        if group.id == id then return true end
+    end
+    return false
+end
 
 function Restoration:Initialize()
     if type(Addon.db.settings) ~= "table" then Addon.db.settings = {} end
     self.config = Addon.db.settings
     if type(self.config.enabled) ~= "boolean" then self.config.enabled = false end
     if type(self.config.modules) ~= "table" then self.config.modules = {} end
+    if type(self.config.groups) ~= "table" then self.config.groups = {} end
+    for id, selected in pairs(self.config.groups) do
+        if not knownGroup(id) or type(selected) ~= "boolean" then self.config.groups[id] = nil end
+    end
     for id, selected in pairs(self.config.modules) do
         if type(selected) ~= "boolean" then self.config.modules[id] = false end
     end
@@ -22,6 +39,8 @@ function Restoration:Register(option)
     assert(option.id:match("^[a-z][a-z0-9_]*$"), "Invalid restoration ID")
     assert(not option.id:find("nameplate"), "Native nameplates are outside restoration scope")
     assert(not self.byID[option.id], "Duplicate restoration option: " .. option.id)
+    if option.group == nil or option.group == "Windows" then option.group = "windows" end
+    assert(knownGroup(option.group), "Unknown restoration group")
     assert(type(option.Apply) == "function" and type(option.Revert) == "function"
         and type(option.IsSupported) == "function", "Missing restoration methods")
     self.byID[option.id] = option
@@ -30,9 +49,51 @@ function Restoration:Register(option)
 end
 
 function Restoration:GetOptions() return self.options end
+function Restoration:GetGroups() return self.groups end
+function Restoration:GetGroupOptions(id)
+    local options = {}
+    for _, option in ipairs(self.options) do
+        if option.group == id then options[#options + 1] = option end
+    end
+    return options
+end
 function Restoration:IsEnabled() return self.config and self.config.enabled == true end
-function Restoration:GetSelection(id) return self.config and self.config.modules[id] == true end
+function Restoration:GetSelection(id)
+    if not self.config then return false end
+    local selected = self.config.modules[id]
+    if type(selected) == "boolean" then return selected end
+    local option = self.byID[id]
+    return option ~= nil and self.config.groups[option.group] == true
+end
 function Restoration:IsSelected(id) return self:IsEnabled() and self:GetSelection(id) end
+
+function Restoration:GetGroupSelection(id)
+    local total, selected = 0, 0
+    for _, option in ipairs(self:GetGroupOptions(id)) do
+        total = total + 1
+        if self:GetSelection(option.id) then selected = selected + 1 end
+    end
+    if selected == 0 then return "none" end
+    return selected == total and "all" or "mixed"
+end
+
+function Restoration:SetGroupSelection(id, value)
+    assert(knownGroup(id), "Unknown restoration group")
+    self.config.groups[id] = value == true
+    for _, option in ipairs(self:GetGroupOptions(id)) do self.config.modules[option.id] = nil end
+    if value == true then self.config.enabled = true end
+    self:Reconcile()
+end
+
+function Restoration:SetAll(value)
+    self.config.enabled = value == true
+    self.config.modules = {}
+    self.config.groups = {}
+    if value == true then
+        for _, group in ipairs(self.groups) do self.config.groups[group.id] = true end
+    end
+    self:Reconcile()
+end
 
 function Restoration:SetEnabled(value)
     self.config.enabled = value == true
@@ -46,9 +107,7 @@ function Restoration:SetSelection(id, value)
 end
 
 function Restoration:Reset()
-    self.config.enabled = false
-    self.config.modules = {}
-    self:Reconcile()
+    self:SetAll(false)
 end
 
 function Restoration:IsSupported(id)

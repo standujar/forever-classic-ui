@@ -781,8 +781,7 @@ test("insufficient screen space hides addon controls and moving Edit Mode restor
     manager.bottom, manager.top = 20, 750
     state:command("")
     equal(settings.panel:IsVisible(), false)
-    settings.masterCheckbox:SetChecked(true)
-    settings.masterCheckbox.scripts.OnClick(settings.masterCheckbox)
+    settings.classicButton.scripts.OnClick(settings.classicButton)
     equal(restoration(state):IsEnabled(), false)
     manager.top = 300
     manager.scripts.OnDragStop(manager)
@@ -798,9 +797,8 @@ test("Edit Mode checkbox choices apply immediately and reset restores native app
     state:command("")
     local row = settings.rows.test_window
     equal(row.checkbox:IsEnabled(), false)
-    settings.masterCheckbox:SetChecked(true)
-    settings.masterCheckbox:Click()
-    equal(engine:IsEnabled(), true)
+    settings.groupRows.windows.customizeButton:Click()
+    equal(engine:IsEnabled(), false)
     equal(row.checkbox:IsEnabled(), true)
     row.checkbox:SetChecked(true)
     row.checkbox:Click()
@@ -814,6 +812,40 @@ test("Edit Mode checkbox choices apply immediately and reset restores native app
     for _, descriptor in ipairs(engine:GetOptions()) do
         assert(not descriptor.id:find("nameplate", 1, true))
     end
+end)
+
+test("collapsed groups expose failed native restoration until recovery succeeds", function()
+    local state = harness(nil, withEditMode)
+    local engine = restoration(state)
+    local settings = state.addon:GetModule("Settings")
+    local canRestore = false
+    local calls = registerFixture(state, "stuck_window", {
+        revert = function(_, current)
+            if not canRestore then return false, "Native border is temporarily unavailable." end
+            current.visual = "native"
+            return true
+        end,
+    })
+    state:command("")
+    engine:SetSelection("stuck_window", true)
+    engine:SetEnabled(true)
+    equal(calls.visual, "classic")
+    equal(settings.rows.stuck_window:IsShown(), false)
+    settings.restoreButton:Click()
+    equal(engine:IsEnabled(), false)
+    equal(engine:GetGroupSelection("windows"), "none")
+    equal(engine:GetStatus("stuck_window"), "error")
+    equal(calls.visual, "classic")
+    equal(settings.rows.stuck_window:IsShown(), false)
+    assert(settings.status.text:find("Needs attention", 1, true))
+    assert(settings.groupRows.windows.status.text:find("Needs attention", 1, true))
+    assert(not settings.groupRows.windows.status.text:find("Native appearance", 1, true))
+    canRestore = true
+    state:emit("ADDON_LOADED", "AnotherBlizzardAddon")
+    equal(engine:GetStatus("stuck_window"), "native")
+    equal(calls.visual, "native")
+    assert(not settings.status.text:find("Needs attention", 1, true))
+    assert(settings.groupRows.windows.status.text:find("Native appearance", 1, true))
 end)
 
 test("Edit Mode choices survive closing reopening and SavedVariables reload", function()
@@ -834,7 +866,7 @@ test("Edit Mode choices survive closing reopening and SavedVariables reload", fu
     restoration(nextState):Reconcile()
     nextState:command("")
     local settings = nextState.addon:GetModule("Settings")
-    equal(settings.masterCheckbox:GetChecked(), true)
+    equal(restoration(nextState):IsEnabled(), true)
     equal(settings.rows.test_window.checkbox:GetChecked(), true)
 end)
 
@@ -857,7 +889,7 @@ end)
 local nativePieces = { "LeftEdge", "RightEdge", "BottomEdge", "BottomLeftCorner", "BottomRightCorner" }
 
 local function withNativeWindows(env, state, region)
-    env.GetBuildInfo = function() return "1.60.1", "69893", "Sep 17 2026", 16001 end
+    env.GetBuildInfo = function() return "1.60.1", "69913", "Sep 18 2026", 16001 end
     env.issecretvalue = function(value)
         assert(type(value) == "number", "Only cosmetic alpha values should be inspected")
         return false
@@ -877,7 +909,7 @@ local function withNativeWindows(env, state, region)
         end
         return frame
     end
-    for _, name in ipairs({ "QuestFrame", "PlayerSpellsFrame", "WorldMapFrame" }) do
+    for _, name in ipairs({ "QuestFrame", "PlayerSpellsFrame", "WorldMapFrame", "CharacterFrame", "ProfessionsFrame", "InspectRecipeFrame", "MerchantFrame", "MailFrame", "OpenMailFrame", "FriendsFrame", "GossipFrame", "TradeFrame", "AuctionHouseFrame", "BankFrame", "ClassTrainerFrame", "ItemTextFrame" }) do
         local frame = nativeFrame()
         local chrome = frame
         if name == "WorldMapFrame" then
@@ -903,7 +935,7 @@ local function withNativeWindows(env, state, region)
     end
 end
 
-test("all three window skins preserve exact alpha baselines through reapply and disable", function()
+test("all sixteen window skins preserve exact alpha baselines through reapply and disable", function()
     local state = harness(nil, withNativeWindows)
     local engine = restoration(state)
     equal(state.nativeMutations, 0)
@@ -912,7 +944,21 @@ test("all three window skins preserve exact alpha baselines through reapply and 
         { "quest_window", "QuestFrame" },
         { "player_spells_window", "PlayerSpellsFrame" },
         { "world_map_window", "WorldMapFrame" },
+        { "character_window", "CharacterFrame" },
+        { "professions_window", "ProfessionsFrame" },
+        { "inspect_recipe_window", "InspectRecipeFrame" },
+        { "merchant_window", "MerchantFrame" },
+        { "mail_window", "MailFrame" },
+        { "open_mail_window", "OpenMailFrame" },
+        { "social_window", "FriendsFrame" },
+        { "gossip_window", "GossipFrame" },
+        { "trade_window", "TradeFrame" },
+        { "auction_house_window", "AuctionHouseFrame" },
+        { "bank_window", "BankFrame" },
+        { "trainer_window", "ClassTrainerFrame" },
+        { "item_text_window", "ItemTextFrame" },
     }
+    equal(#engine:GetOptions(), #cases)
     for _, case in ipairs(cases) do
         engine:SetSelection(case[1], true)
         equal(engine:GetStatus(case[1]), "active")
@@ -988,8 +1034,7 @@ test("Edit Mode controls hide in combat and stale clicks cannot change saved sel
     local engine = restoration(state)
     local settings = state.addon:GetModule("Settings")
     state:command("")
-    settings.masterCheckbox:SetChecked(true)
-    settings.masterCheckbox:Click()
+    settings.groupRows.windows.customizeButton:Click()
     local row = settings.rows.quest_window
     row.checkbox:SetChecked(true)
     row.checkbox:Click()
@@ -1025,6 +1070,165 @@ test("an active window returns to native if its client support is lost", functio
     equal(engine:GetStatus("world_map_window"), "unsupported")
     local native = state.windows.WorldMapFrame
     for _, piece in ipairs(nativePieces) do equal(native.slice[piece].alpha, native.originals[piece]) end
+end)
+
+test("group defaults inherit new modules and individual exceptions survive reload", function()
+    local state = harness(nil, withNativeWindows)
+    local engine = restoration(state)
+    engine:SetGroupSelection("windows", true)
+    equal(engine:IsEnabled(), true)
+    equal(engine:GetGroupSelection("windows"), "all")
+    equal(engine:GetSelection("world_map_window"), false)
+    engine:SetSelection("quest_window", false)
+    equal(engine:GetGroupSelection("windows"), "mixed")
+    local calls = registerFixture(state, "future_window")
+    engine:Reconcile()
+    equal(calls.visual, "classic")
+    local reloaded = harness(clone(state.addon.db), withNativeWindows)
+    local fresh = restoration(reloaded)
+    registerFixture(reloaded, "future_window")
+    equal(fresh:GetSelection("quest_window"), false)
+    equal(fresh:GetSelection("future_window"), true)
+    fresh:SetGroupSelection("windows", false)
+    equal(fresh:GetGroupSelection("windows"), "none")
+    fresh:SetGroupSelection("windows", true)
+    equal(fresh:GetSelection("quest_window"), true, "Choosing a whole group clears its old exceptions")
+end)
+
+test("global presets select every group and restore clears inherited and explicit choices", function()
+    local state = harness(nil, withNativeWindows)
+    local engine = restoration(state)
+    engine:SetAll(true)
+    equal(engine:GetGroupSelection("windows"), "all")
+    equal(engine:GetGroupSelection("maps"), "all")
+    local _, future = registerFixture(state, "future_unit")
+    future.group = "unit_frames"
+    equal(engine:GetSelection("future_unit"), true)
+    engine:SetSelection("quest_window", false)
+    engine:SetAll(false)
+    equal(engine:IsEnabled(), false)
+    equal(next(engine.config.modules), nil)
+    equal(next(engine.config.groups), nil)
+    equal(engine:GetSelection("future_unit"), false)
+    for _, option in ipairs(engine:GetOptions()) do equal(engine:GetStatus(option.id), "native") end
+end)
+
+test("legacy module choices migrate without enabling new windows or losing reports", function()
+    local state = harness({ schemaVersion = 1, lastReport = { retained = true }, settings = {
+        enabled = true, modules = { quest_window = true, world_map_window = false },
+    } }, withNativeWindows)
+    local engine = restoration(state)
+    equal(engine:GetStatus("quest_window"), "active")
+    equal(engine:GetSelection("character_window"), false)
+    equal(engine:GetSelection("world_map_window"), false)
+    equal(next(engine.config.groups), nil)
+    equal(state.addon.db.lastReport.retained, true)
+end)
+
+test("group selection during combat defers changes and respects final exceptions", function()
+    local state = harness(nil, withNativeWindows)
+    local engine = restoration(state)
+    state.combat = true
+    engine:SetAll(true)
+    engine:SetSelection("quest_window", false)
+    equal(state.nativeMutations, 0)
+    equal(engine:GetStatus("character_window"), "pending")
+    state.combat = false
+    state:emit("PLAYER_REGEN_ENABLED")
+    equal(engine:GetStatus("character_window"), "active")
+    equal(engine:GetStatus("quest_window"), "native")
+end)
+
+test("grouped Edit Mode starts collapsed and Customize does not enable restoration", function()
+    local state = harness(nil, function(env, current, region)
+        withNativeWindows(env, current, region); withEditMode(env, current)
+    end)
+    local settings, engine = state.addon:GetModule("Settings"), restoration(state)
+    state:command("")
+    equal(#engine:GetGroups(), 4)
+    equal(settings.rows.quest_window:IsShown(), false)
+    equal(settings.groupRows.unit_frames.checkbox:IsEnabled(), false)
+    equal(settings.groupRows.hud.customizeButton:IsEnabled(), false)
+    settings.groupRows.windows.customizeButton:Click()
+    equal(settings.rows.quest_window:IsShown(), true)
+    equal(engine:IsEnabled(), false)
+    settings.groupRows.windows.checkbox:SetChecked(true)
+    settings.groupRows.windows.checkbox:Click()
+    equal(engine:IsEnabled(), true)
+    equal(engine:GetGroupSelection("windows"), "all")
+    local checkbox = settings.rows.quest_window.checkbox
+    checkbox:SetChecked(false); checkbox:Click()
+    equal(settings.groupRows.windows.mixedMark:IsShown(), true)
+    equal(settings.groupRows.windows.checkbox:GetChecked(), false)
+    settings.groupRows.windows.customizeButton:Click()
+    checkbox:SetChecked(true); checkbox.scripts.OnClick(checkbox)
+    equal(engine:GetSelection("quest_window"), false, "Collapsed stale clicks must be inert")
+    settings.classicButton:Click()
+    equal(engine:GetSelection("world_map_window"), true)
+    equal(engine:GetSelection("quest_window"), true)
+    settings.restoreButton:Click()
+    equal(engine:IsEnabled(), false)
+end)
+
+test("hidden and combat group controls reject stale preset and group clicks", function()
+    local state = harness(nil, function(env, current, region)
+        withNativeWindows(env, current, region); withEditMode(env, current)
+    end)
+    local settings, engine = state.addon:GetModule("Settings"), restoration(state)
+    state:command("")
+    for _, inCombat in ipairs({ false, true }) do
+        state.combat = inCombat
+        if inCombat then state:emit("PLAYER_REGEN_DISABLED") else state.env.EditModeManagerFrame:Hide() end
+        local group = settings.groupRows.windows
+        settings.classicButton.scripts.OnClick(settings.classicButton)
+        group.checkbox:SetChecked(true); group.checkbox.scripts.OnClick(group.checkbox)
+        group.customizeButton.scripts.OnClick(group.customizeButton)
+        equal(engine:IsEnabled(), false)
+        equal(engine:GetGroupSelection("windows"), "none")
+        equal(settings.expandedGroups.windows, nil)
+    end
+end)
+
+test("both observed builds are accepted and an unknown build stays unavailable", function()
+    local state = harness(nil, withNativeWindows)
+    local engine = restoration(state)
+    for _, build in ipairs({ "69893", "69913" }) do
+        state.env.GetBuildInfo = function() return "1.60.1", build, "observed", 16001 end
+        equal(engine:IsSupported("character_window"), true)
+    end
+    state.env.GetBuildInfo = function() return "1.60.1", "69999", "unknown", 16001 end
+    equal(engine:IsSupported("character_window"), false)
+end)
+
+test("additional window skins reject incomplete protected and secret decorations before mutation", function()
+    local cases = {
+        function(env) env.ProfessionsFrame.NineSlice = nil end,
+        function(env) env.ProfessionsFrame.NineSlice.LeftEdge = nil end,
+        function(env) env.ProfessionsFrame.protected = true end,
+        function(env) env.ProfessionsFrame.NineSlice.forbidden = true end,
+        function(env) env.issecretvalue = function() return true end end,
+    }
+    for _, change in ipairs(cases) do
+        local state = harness(nil, withNativeWindows)
+        change(state.env)
+        local engine = restoration(state)
+        engine:SetSelection("professions_window", true)
+        engine:SetEnabled(true)
+        equal(engine:GetStatus("professions_window"), "error")
+        equal(state.nativeMutations, 0)
+    end
+end)
+
+test("missing map border never falls back to a different root decoration", function()
+    local state = harness(nil, withNativeWindows)
+    local frame = state.env.WorldMapFrame
+    frame.NineSlice = frame.BorderFrame.NineSlice
+    frame.BorderFrame = nil
+    local engine = restoration(state)
+    engine:SetSelection("world_map_window", true)
+    engine:SetEnabled(true)
+    equal(engine:GetStatus("world_map_window"), "error")
+    equal(state.nativeMutations, 0)
 end)
 
 print(string.format("%d behavioral tests passed under %s", testCount, _VERSION))

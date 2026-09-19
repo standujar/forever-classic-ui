@@ -2,7 +2,7 @@
 local addonName, Addon = ...
 
 Addon.name = addonName
-Addon.version = "0.2.3-dev"
+Addon.version = "0.3.0-dev"
 Addon.modules = {}
 Addon.moduleOrder = {}
 

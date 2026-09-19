@@ -11,6 +11,9 @@ Diagnostics.frameNames = {
     -- The beta uses a combined spells/talents window and a map quest panel.
     -- Keep legacy probes for comparison; their absence is not an error.
     "PlayerSpellsFrame", "QuestMapFrame", "SettingsPanel", "FocusFrame",
+    "ProfessionsFrame", "InspectRecipeFrame", "MerchantFrame", "MailFrame", "OpenMailFrame",
+    "FriendsFrame", "GossipFrame", "TradeFrame", "AuctionHouseFrame", "ClassTrainerFrame",
+    "ItemTextFrame", "ContainerFrameCombinedBags", "LootFrame",
 }
 
 local function inspectFrame(name)
@@ -70,11 +73,14 @@ function Diagnostics:Collect()
     for _, name in ipairs(self.frameNames) do report.frames[name] = inspectFrame(name) end
     local restoration = Addon:GetModule("Restoration")
     if restoration then
-        report.restoration = { enabled = restoration:IsEnabled(), modules = {} }
+        report.restoration = { enabled = restoration:IsEnabled(), groups = {}, modules = {} }
+        for _, group in ipairs(restoration:GetGroups()) do
+            report.restoration.groups[group.id] = restoration:GetGroupSelection(group.id)
+        end
         for _, option in ipairs(restoration:GetOptions()) do
             local state, reason = restoration:GetStatus(option.id)
             report.restoration.modules[option.id] = {
-                selected = restoration:GetSelection(option.id), state = state, reason = reason,
+                selected = restoration:GetSelection(option.id), group = option.group, state = state, reason = reason,
             }
         end
     end
@@ -114,7 +120,7 @@ function Diagnostics:Run(verbose)
     Addon:Print("Edit Mode controls: " .. (report.api.EditMode_controls_registered and "registered" or "unavailable") .. ".")
     if report.restoration then
         Addon:Print("Classic styling: " .. (report.restoration.enabled and "enabled" or "disabled")
-            .. ". Open /foreverui edit to choose window borders in Edit Mode.")
+            .. ". Open /foreverui edit to choose groups or individual windows in Edit Mode.")
         if verbose then
             for _, option in ipairs(Addon:GetModule("Restoration"):GetOptions()) do
                 local module = report.restoration.modules[option.id]

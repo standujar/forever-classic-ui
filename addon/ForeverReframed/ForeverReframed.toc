@@ -2,7 +2,7 @@
 ## Title: Classic UI - Forever Reframed - Era Workshop
 ## Notes: Classic UI options in Edit Mode, diagnostics and experimental Forever window borders. In-game validation pending.
 ## Author: Classic UI - Forever Reframed project
-## Version: 0.2.3-dev
+## Version: 0.3.0-dev
 ## X-License: MIT
 ## X-Curse-Project-ID: 1699904
 ## SavedVariables: ForeverReframedDB

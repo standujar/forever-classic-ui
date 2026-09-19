@@ -42,8 +42,9 @@ The publish job downloads the exact archive produced by the checks job and
 verifies its manifest, SHA-256 hash, TOC, version and target before uploading.
 It sends the normal `ForeverReframed-<version>-forever-beta.zip`, without the
 optional preview artwork, to CurseForge project **1699904** for game **1.60.1**.
-The current exact-build restriction is still `1.60.1.69893`; changing supported
-clients requires updating and validating the addon and publishing checks together.
+The `0.3.0-dev` package manifest targets `1.60.1.69913` / Interface `16001`;
+the window skins accept builds `69893` and `69913`. Changing supported clients
+requires updating and validating the addon and publishing checks together.
 
 The Actions summary and `curseforge-receipt-…` artifact record the returned file
 ID. Successful upload means submission to CurseForge; moderation still decides

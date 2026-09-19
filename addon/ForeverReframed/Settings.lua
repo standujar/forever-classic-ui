@@ -154,7 +154,7 @@ function SettingsPanel:CreatePanel(manager)
         tile = true, tileSize = 32, edgeSize = 16,
         insets = { left = 4, right = 4, top = 4, bottom = 4 },
     })
-    self.rows = {}
+    self.rows, self.groupRows, self.expandedGroups = {}, {}, {}
 
     -- Everything scrolls together, including the heading and footer. A small
     -- viewport can therefore fit beside an expanded native manager without
@@ -172,28 +172,63 @@ function SettingsPanel:CreatePanel(manager)
 
     self.title = font(content, "Classic UI - Forever Reframed", "GameFontNormal")
     self.title:SetPoint("TOPLEFT", content, "TOPLEFT", 4, -6)
-    self.resetButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
-    self.resetButton:SetSize(128, 24)
-    self.resetButton:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, 0)
-    self.resetButton:SetText("Reset to defaults")
-    self.resetButton:SetScript("OnClick", function()
-        if self:CanChange() then Addon:GetModule("Restoration"):Reset() end
-        self:Refresh()
-    end)
-
-    self.masterCheckbox = checkbox(content, "Enable Classic styling")
-    self.masterCheckbox:SetPoint("TOPLEFT", content, "TOPLEFT", -2, -30)
-    self.masterCheckbox:SetScript("OnClick", function(button)
-        if self:CanChange() then
-            Addon:GetModule("Restoration"):SetEnabled(button:GetChecked() and true or false)
+    self.classicButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    self.classicButton:SetSize(154, 24)
+    self.classicButton:SetPoint("TOPLEFT", content, "TOPLEFT", 2, -30)
+    self.classicButton:SetText("Classic everywhere")
+    self.classicButton:SetScript("OnClick", function()
+        if self:CanChange() and self.hasSupportedOptions then
+            Addon:GetModule("Restoration"):SetAll(true)
         end
         self:Refresh()
     end)
-    self.status = font(content, "Preview build: window borders only. In-game validation pending.")
+    self.restoreButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    self.restoreButton:SetSize(142, 24)
+    self.restoreButton:SetPoint("LEFT", self.classicButton, "RIGHT", 8, 0)
+    self.restoreButton:SetText("Restore Forever")
+    self.restoreButton:SetScript("OnClick", function()
+        if self:CanChange() then Addon:GetModule("Restoration"):SetAll(false) end
+        self:Refresh()
+    end)
+    self.resetButton = self.restoreButton
+
+    self.status = font(content)
     self.status:SetPoint("TOPLEFT", content, "TOPLEFT", 4, -64)
     self.summary = self.status
-    self.note = font(content, "Saved immediately for all layouts. Edit Mode Save/Revert does not change these choices. Nameplates stay native.")
+    self.note = font(content, "Group choices also apply to future modules. Customize to keep individual elements native. Saved immediately for all layouts; Edit Mode Save/Revert does not change these choices. Nameplates stay native.")
     return panel
+end
+
+function SettingsPanel:CreateGroupRow(descriptor)
+    local row = CreateFrame("Frame", nil, self.content)
+    row.descriptor = descriptor
+    row.checkbox = checkbox(row, descriptor.label)
+    row.checkbox:SetPoint("TOPLEFT", row, "TOPLEFT", 0, 0)
+    -- A dash gives the native two-state template an explicit mixed state.
+    -- Leave the underlying checkbox unchecked so a click selects the group.
+    row.mixedMark = font(row.checkbox, "-", "GameFontNormalLarge")
+    row.mixedMark:SetPoint("CENTER", row.checkbox, "CENTER", 0, 1)
+    row.mixedMark:SetJustifyH("CENTER")
+    row.mixedMark:Hide()
+    row.status = font(row)
+    row.customizeButton = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+    row.customizeButton:SetSize(108, 24)
+    row.customizeButton:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -2)
+    row.customizeButton:SetScript("OnClick", function()
+        if self:CanChange() and #row.options > 0 then
+            local id = row.descriptor.id
+            self.expandedGroups[id] = not self.expandedGroups[id]
+        end
+        self:Refresh()
+    end)
+    row.checkbox:SetScript("OnClick", function(button)
+        if self:CanChange() and row.available then
+            Addon:GetModule("Restoration"):SetGroupSelection(row.descriptor.id, button:GetChecked() and true or false)
+        end
+        self:Refresh()
+    end)
+    self.groupRows[descriptor.id] = row
+    return row
 end
 
 function SettingsPanel:CreateRow(descriptor)
@@ -204,13 +239,25 @@ function SettingsPanel:CreateRow(descriptor)
     row.descriptor = descriptor
     row.checkbox:SetScript("OnClick", function(button)
         local engine = Addon:GetModule("Restoration")
-        if self:CanChange() and engine:IsEnabled() and engine:IsSupported(row.descriptor.id) then
-            engine:SetSelection(row.descriptor.id, button:GetChecked() and true or false)
+        if self:CanChange() and row:IsShown() and engine:IsSupported(row.descriptor.id) then
+            local selected = button:GetChecked() and true or false
+            engine:SetSelection(row.descriptor.id, selected)
+            if selected and not engine:IsEnabled() then engine:SetEnabled(true) end
         end
         self:Refresh()
     end)
     self.rows[descriptor.id] = row
     return row
+end
+
+function SettingsPanel:DisableControls()
+    self.classicButton:SetEnabled(false)
+    self.restoreButton:SetEnabled(false)
+    for _, row in pairs(self.rows) do row.checkbox:SetEnabled(false) end
+    for _, row in pairs(self.groupRows) do
+        row.checkbox:SetEnabled(false)
+        row.customizeButton:SetEnabled(false)
+    end
 end
 
 function SettingsPanel:Layout()
@@ -220,24 +267,40 @@ function SettingsPanel:Layout()
     if width <= 0 then width = 510 end
     local contentWidth = math.max(1, width - 48)
     self.content:SetWidth(contentWidth)
-    self.title:SetWidth(math.max(1, contentWidth - 140))
+    self.title:SetWidth(math.max(1, contentWidth - 8))
     self.status:SetWidth(math.max(1, contentWidth - 8))
     self.note:SetWidth(math.max(1, contentWidth - 8))
-    self.masterCheckbox.Text:SetWidth(math.max(1, contentWidth - 34))
     local y = 64 + textHeight(self.status) + 10
-    for _, descriptor in ipairs(self.options or {}) do
-        local row = self.rows[descriptor.id]
-        row:ClearAllPoints()
-        row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -y)
-        row:SetWidth(contentWidth)
-        row.checkbox.Text:SetWidth(math.max(1, contentWidth - 34))
-        local labelHeight = math.max(28, textHeight(row.checkbox.Text))
-        row.status:ClearAllPoints()
-        row.status:SetPoint("TOPLEFT", row, "TOPLEFT", 30, -labelHeight)
-        row.status:SetWidth(math.max(1, contentWidth - 34))
-        local height = labelHeight + textHeight(row.status) + 8
-        row:SetHeight(height)
-        y = y + height
+    for _, descriptor in ipairs(self.groups or {}) do
+        local group = self.groupRows[descriptor.id]
+        group:ClearAllPoints()
+        group:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -y)
+        group:SetWidth(contentWidth)
+        group.checkbox.Text:SetWidth(math.max(1, contentWidth - 148))
+        local labelHeight = math.max(28, textHeight(group.checkbox.Text))
+        group.status:ClearAllPoints()
+        group.status:SetPoint("TOPLEFT", group, "TOPLEFT", 30, -labelHeight)
+        group.status:SetWidth(math.max(1, contentWidth - 34))
+        local groupHeight = labelHeight + textHeight(group.status) + 8
+        group:SetHeight(groupHeight)
+        y = y + groupHeight
+        if self.expandedGroups[descriptor.id] then
+            for _, option in ipairs(group.options) do
+                local row = self.rows[option.id]
+                row:ClearAllPoints()
+                row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 20, -y)
+                row:SetWidth(math.max(1, contentWidth - 20))
+                row.checkbox.Text:SetWidth(math.max(1, contentWidth - 54))
+                local rowLabelHeight = math.max(28, textHeight(row.checkbox.Text))
+                row.status:ClearAllPoints()
+                row.status:SetPoint("TOPLEFT", row, "TOPLEFT", 30, -rowLabelHeight)
+                row.status:SetWidth(math.max(1, contentWidth - 54))
+                local height = rowLabelHeight + textHeight(row.status) + 8
+                row:SetHeight(height)
+                y = y + height
+            end
+            y = y + 4
+        end
     end
     self.note:ClearAllPoints()
     self.note:SetPoint("TOPLEFT", self.content, "TOPLEFT", 4, -(y + 8))
@@ -281,59 +344,146 @@ function SettingsPanel:Layout()
     return true
 end
 
+local function attentionSummary(errors, restoreErrors, pending)
+    if errors == 0 and pending == 0 then return nil end
+    local details = {}
+    if restoreErrors > 0 then
+        details[#details + 1] = restoreErrors .. (restoreErrors == 1 and " module" or " modules") .. " could not be restored"
+    end
+    local applyErrors = errors - restoreErrors
+    if applyErrors > 0 then
+        details[#details + 1] = applyErrors .. (applyErrors == 1 and " module" or " modules") .. " could not be styled"
+    end
+    if pending > 0 then
+        details[#details + 1] = pending .. (pending == 1 and " change pending" or " changes pending")
+    end
+    return (errors > 0 and "Needs attention: " or "Pending: ") .. table.concat(details, "; ") .. "."
+end
+
+function SettingsPanel:RefreshRow(row, descriptor, visible, engine)
+    row.descriptor = descriptor
+    row.checkbox.Text:SetText(descriptor.label)
+    row.checkbox:SetChecked(engine:GetSelection(descriptor.id))
+    local supported, unsupportedReason = engine:IsSupported(descriptor.id)
+    row.checkbox:SetEnabled(visible and supported)
+    local state, reason = engine:GetStatus(descriptor.id)
+    if not supported and (state == "native" or state == "unsupported") then
+        state, reason = "unsupported", unsupportedReason or reason
+    end
+    local status = statusLabels[state] or "Status unavailable"
+    if state == "error" and not engine:IsSelected(descriptor.id) then
+        status = "Could not restore native appearance"
+    end
+    if reason and reason ~= "" then status = status .. ": " .. reason end
+    if not supported and state ~= "unsupported" then
+        status = status .. ". " .. (unsupportedReason or "This module is not supported on this client.")
+    end
+    row.status:SetText(status)
+    if state == "unsupported" or state == "error" then
+        row.status:SetTextColor(1, 0.55, 0.4)
+    elseif state == "active" then
+        row.status:SetTextColor(0.5, 1, 0.5)
+    else
+        row.status:SetTextColor(0.75, 0.75, 0.75)
+    end
+    return supported, state
+end
+
 function SettingsPanel:Refresh()
     if not self.panel or self.refreshing then return end
     local engine = Addon:GetModule("Restoration")
     if not engine then return end
     if Addon:IsInCombat() then
-        self.masterCheckbox:SetEnabled(false)
-        self.resetButton:SetEnabled(false)
-        for _, row in pairs(self.rows) do row.checkbox:SetEnabled(false) end
+        self:DisableControls()
         self.panel:Hide()
         return
     end
     self.refreshing = true
     local visible, enabled = self:IsEditModeVisible(), engine:IsEnabled()
-    self.masterCheckbox:SetChecked(enabled)
-    self.masterCheckbox:SetEnabled(visible)
-    self.resetButton:SetEnabled(visible)
-    for _, row in pairs(self.rows) do row:Hide() end
-    self.options = engine:GetOptions() or {}
-    for _, descriptor in ipairs(self.options) do
-        local row = self.rows[descriptor.id] or self:CreateRow(descriptor)
-        row.descriptor = descriptor
-        row.checkbox.Text:SetText(descriptor.label)
-        row.checkbox:SetChecked(engine:GetSelection(descriptor.id))
-        local supported, unsupportedReason = engine:IsSupported(descriptor.id)
-        row.checkbox:SetEnabled(visible and enabled and supported)
-        local state, reason = engine:GetStatus(descriptor.id)
-        if not supported and (state == "native" or state == "unsupported") then
-            state, reason = "unsupported", unsupportedReason or reason
-        end
-        local status = statusLabels[state] or "Status unavailable"
-        if reason and reason ~= "" then status = status .. ": " .. reason end
-        if not supported and state ~= "unsupported" then
-            status = status .. ". " .. (unsupportedReason or "This module is not supported on this client.")
-        end
-        row.status:SetText(status)
-        if state == "unsupported" or state == "error" then
-            row.status:SetTextColor(1, 0.55, 0.4)
-        elseif state == "active" then
-            row.status:SetTextColor(0.5, 1, 0.5)
-        else
-            row.status:SetTextColor(0.75, 0.75, 0.75)
-        end
-        row:Show()
+    if enabled then
+        self.status:SetText("Choose whole groups, then customize exceptions. Available modules provide partial Classic styling.")
+    else
+        self.status:SetText("Classic styling is off. Choose a group or use Classic everywhere to get started.")
     end
+    self.restoreButton:SetEnabled(visible)
+    for _, row in pairs(self.rows) do
+        row:Hide()
+        row.checkbox:SetEnabled(false)
+    end
+    for _, group in pairs(self.groupRows) do group:Hide() end
+    self.options, self.groups = engine:GetOptions() or {}, engine:GetGroups() or {}
+    self.hasSupportedOptions = false
+    local totalErrors, totalRestoreErrors, totalPending = 0, 0, 0
+    for _, descriptor in ipairs(self.groups) do
+        local group = self.groupRows[descriptor.id] or self:CreateGroupRow(descriptor)
+        group.descriptor = descriptor
+        group.options = engine:GetGroupOptions(descriptor.id) or {}
+        group.checkbox.Text:SetText(descriptor.label)
+        local expanded = self.expandedGroups[descriptor.id] == true
+        group.customizeButton:SetText(expanded and "Customize -" or "Customize +")
+        local available, errors, restoreErrors, pending = 0, 0, 0, 0
+        for _, option in ipairs(group.options) do
+            local row = self.rows[option.id] or self:CreateRow(option)
+            local supported, state = self:RefreshRow(row, option, visible and expanded, engine)
+            if supported then available = available + 1 end
+            if state == "error" then
+                errors = errors + 1
+                if not engine:IsSelected(option.id) then restoreErrors = restoreErrors + 1 end
+            elseif state == "pending" then
+                pending = pending + 1
+            end
+            if expanded then row:Show() end
+        end
+        totalErrors, totalRestoreErrors, totalPending = totalErrors + errors, totalRestoreErrors + restoreErrors, totalPending + pending
+        local attention = attentionSummary(errors, restoreErrors, pending)
+        group.available = available > 0
+        self.hasSupportedOptions = self.hasSupportedOptions or group.available
+        local selection = engine:GetGroupSelection(descriptor.id)
+        group.selection = selection
+        group.checkbox:SetChecked(selection == "all")
+        if selection == "mixed" then group.mixedMark:Show() else group.mixedMark:Hide() end
+        group.checkbox:SetEnabled(visible and group.available)
+        group.customizeButton:SetEnabled(visible and #group.options > 0)
+        if #group.options == 0 then
+            group.status:SetText("Coming soon")
+            group.customizeButton:Hide()
+        else
+            local label = selection == "all" and "Classic selected" or selection == "mixed" and "Custom selection" or "Native appearance"
+            if not enabled and selection ~= "none" then label = label .. " (styling is off)" end
+            if available == 0 then
+                label = label .. " - unavailable on this client"
+            else
+                label = label .. " - " .. available .. " available"
+            end
+            -- Desired selection is not proof that a failed rollback restored
+            -- the native textures. Surface failures even while collapsed.
+            group.status:SetText(attention or label)
+            group.customizeButton:Show()
+        end
+        if errors > 0 then
+            group.status:SetTextColor(1, 0.55, 0.4)
+        elseif pending > 0 then
+            group.status:SetTextColor(1, 0.82, 0)
+        else
+            group.status:SetTextColor(group.available and 0.85 or 0.6, group.available and 0.85 or 0.6, group.available and 0.85 or 0.6)
+        end
+        group:Show()
+    end
+    local attention = attentionSummary(totalErrors, totalRestoreErrors, totalPending)
+    if attention then
+        self.status:SetText(attention .. " Expand Customize for details.")
+        if totalErrors > 0 then self.status:SetTextColor(1, 0.55, 0.4) else self.status:SetTextColor(1, 0.82, 0) end
+    else
+        self.status:SetTextColor(1, 1, 1)
+    end
+    self.classicButton:SetEnabled(visible and self.hasSupportedOptions)
     self:Layout()
     if visible and self.layoutFits then
         self.spaceWarningShown = nil
         self.panel:Show()
     else
         self.panel:Hide()
-        self.masterCheckbox:SetEnabled(false)
-        self.resetButton:SetEnabled(false)
-        for _, row in pairs(self.rows) do row.checkbox:SetEnabled(false) end
+        self:DisableControls()
         if visible and not self.spaceWarningShown then
             self.spaceWarningShown = true
             Addon:Print("Classic UI controls need more screen space. Move or collapse the Edit Mode window to show them.")

@@ -1,45 +1,46 @@
 ## Bringing the Classic look to Forever
 
-**Classic UI - Forever Reframed** is an open-source project working toward the familiar Classic Era interface in World of Warcraft: Forever. The goal is to restore its unit frames, windows, maps and action bars, while letting you choose which parts to use.
+**Classic UI - Forever Reframed** brings familiar Classic Era styling to World of Warcraft: Forever, with simple choices inside the game's Edit Mode. The goal is the complete Classic-style interface: unit frames, windows, maps and action bars.
 
-**Nameplates stay native.** Forever's nameplates are outside the restoration scope.
+**Nameplates stay native.** Forever's nameplates keep their original appearance and behavior.
 
-> **Early development:** the current release includes Edit Mode options and three partial window skins. Full Classic interface restoration is still in development, and the new features await in-game validation.
+> **Early development — 0.3.0-dev:** grouped controls and sixteen partial window skins are implemented. Complete Classic windows, unit frames and HUD styling remain in development. The new features still need in-game validation.
 
-## What's included today
+## Classic styling, your choice
+
+Open **Escape → Edit Mode** or type **`/foreverui`**, outside combat.
+
+- **Classic everywhere:** select all restoration groups in one click.
+- **Restore Forever:** return to native borders and clear your selections.
+- **Windows** and **Maps:** choose a whole group without ticking every window.
+- **Customize:** expand a group only when you want an exception.
+
+**Unit frames** and **Action bars & HUD** show **Coming soon** until their modules are available. Group choices also apply to future modules; Classic everywhere opts into future modules in all four groups. Individual exceptions take precedence.
+
+Fresh installations start with restoration off, and existing selections are preserved when updating. Choices save immediately across all layouts; native Edit Mode **Save** and **Revert** do not change addon settings.
+
+## Window skins included
 
 Optional Classic **side and bottom borders** for:
 
-- **Quest interactions**
-- **Talents and spellbook**, sharing one option
-- **World map**
+- **Character and skills**, **talents and spellbook**, **professions**, and **recipe inspection**.
+- **Quests**, **NPC conversations**, **merchants**, **trainers**, and **books and letters**.
+- **Mailbox**, **opened mail**, **trade**, **auction house**, **bank**, and **friends/social**.
+- **World map**.
 
-The windows keep their native titles, portraits, buttons, contents and layout. Complete Classic windows, unit frames and HUD styling are planned.
-
-## Set it up in Edit Mode
-
-1. Open **Escape → Edit Mode**, or type **`/foreverui`**, outside combat.
-2. Find the **Classic UI** section attached to the Edit Mode window.
-3. Enable restoration and choose the available window skins you want to try.
-
-Fresh installations start with restoration **off**. Turn a skin off to return to its native border, or use **Reset to defaults** to disable all restoration.
-
-Your choices save immediately and apply across all Edit Mode layouts. Native **Save** and **Revert** do not change these addon settings.
+These windows retain their native titles, portraits, buttons, contents and layout. Bags and loot skins are still planned. Window movement fixes made for BlizzMove are separate and are not bundled here.
 
 ## What's next
 
-- **Unit frames:** player, target, pet, party and raid.
-- **Windows:** character and skills, talents, spellbook, professions, bags, bank, quests and more.
-- **Maps:** world map, minimap and flight map.
-- **Action bars and HUD:** action buttons, XP and reputation bars, tooltips and other interface controls.
+Complete Classic window artwork and layouts, player/target/party/raid frames, bags and loot, minimap and flight map, action bars, tooltips and the remaining interface controls.
 
-These are planned restoration areas. New options will become available as their modules are implemented.
+New options appear as their modules are implemented. Nameplates always remain native.
 
 ## Compatibility and feedback
 
-The current border modules target **Forever beta 1.60.1.69893** and require that exact build. In-game appearance, behavior and compatibility with other addons still need testing.
+The development package supports **Forever beta 1.60.1, builds 69893 and 69913 / Interface 16001**. In-game appearance, interactions, combat behavior and addon compatibility still need testing for this version.
 
-For a diagnostic report, use **`/foreverui inspect`**. Include your client build, addon version and steps to reproduce when reporting an issue.
+Use **`/foreverui inspect`** for a diagnostic report. When reporting an issue, include your client build, addon version and steps to reproduce.
 
 **[GitHub & roadmap](https://github.com/standujar/forever-classic-ui)** · **[Report an issue](https://github.com/standujar/forever-classic-ui/issues)** · **[Contribute](https://github.com/standujar/forever-classic-ui/blob/main/CONTRIBUTING.md)**
 
